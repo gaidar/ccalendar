@@ -33,18 +33,18 @@ Core authentication required for all protected features.
 
 | Status | Feature | Spec | Priority | Notes |
 |--------|---------|------|----------|-------|
-| `[ ]` | Email/password registration | `[ ]` | P0 | Zod validation, bcrypt hashing |
-| `[ ]` | Email confirmation flow | `[ ]` | P0 | Token generation, expiry (48hr) |
-| `[ ]` | Login with JWT | `[ ]` | P0 | Access (15min) + Refresh (7d) tokens |
-| `[ ]` | Token refresh mechanism | `[ ]` | P0 | Rotating refresh tokens |
-| `[ ]` | Logout (single session) | `[ ]` | P1 | Invalidate current refresh token |
-| `[ ]` | Password reset flow | `[ ]` | P1 | Email request, token (1hr), reset |
-| `[ ]` | Account lockout (brute force) | `[ ]` | P1 | 5 attempts, 15min lockout |
+| `[X]` | Email/password registration | `[X]` | P0 | Zod validation, bcrypt hashing |
+| `[X]` | Email confirmation flow | `[X]` | P0 | Token generation, expiry (48hr) |
+| `[X]` | Login with JWT | `[X]` | P0 | Access (15min) + Refresh (7d) tokens |
+| `[X]` | Token refresh mechanism | `[X]` | P0 | Rotating refresh tokens |
+| `[X]` | Logout (single session) | `[X]` | P1 | Invalidate current refresh token |
+| `[X]` | Password reset flow | `[X]` | P1 | Email request, token (1hr), reset |
+| `[X]` | Account lockout (brute force) | `[X]` | P1 | 5 attempts, 15min lockout |
 | `[ ]` | Google OAuth | `[ ]` | P1 | Passport.js, account linking |
 | `[ ]` | Facebook OAuth | `[ ]` | P2 | Passport.js, account linking |
 | `[ ]` | Apple Sign In | `[ ]` | P2 | POST callback, account linking |
-| `[ ]` | Logout all devices | `[ ]` | P2 | Invalidate all refresh tokens |
-| `[ ]` | Rate limiting | `[ ]` | P1 | express-rate-limit, per-endpoint |
+| `[X]` | Logout all devices | `[X]` | P2 | Invalidate all refresh tokens |
+| `[X]` | Rate limiting | `[X]` | P1 | express-rate-limit, per-endpoint |
 
 ## Phase 3: Core Travel Features
 
@@ -184,10 +184,10 @@ Test coverage requirements.
 
 | Status | Feature | Spec | Priority | Notes |
 |--------|---------|------|----------|-------|
-| `[ ]` | Test infrastructure setup | `[ ]` | P0 | Vitest, test DB |
-| `[ ]` | Auth unit tests | `[ ]` | P1 | Registration, login, tokens |
+| `[X]` | Test infrastructure setup | `[X]` | P0 | Vitest, test DB |
+| `[X]` | Auth unit tests | `[X]` | P1 | Registration, login, tokens |
 | `[ ]` | Travel records unit tests | `[ ]` | P1 | CRUD operations |
-| `[ ]` | Auth integration tests | `[ ]` | P1 | Full flows |
+| `[X]` | Auth integration tests | `[X]` | P1 | Full flows |
 | `[ ]` | Travel records integration tests | `[ ]` | P1 | With auth |
 | `[ ]` | Admin integration tests | `[ ]` | P2 | Admin flows |
 | `[ ]` | Frontend component tests | `[ ]` | P2 | Testing Library |
