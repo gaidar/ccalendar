@@ -1,0 +1,30 @@
+FROM node:20-alpine
+
+WORKDIR /app
+
+# Install dependencies for Prisma
+RUN apk add --no-cache openssl
+
+# Copy root package files
+COPY package*.json ./
+
+# Copy API package files
+COPY packages/api/package*.json ./packages/api/
+
+# Install all dependencies
+RUN npm install
+
+# Copy Prisma schema
+COPY packages/api/prisma ./packages/api/prisma
+
+# Generate Prisma client
+RUN cd packages/api && npx prisma generate
+
+# Copy source code
+COPY packages/api ./packages/api
+
+# Expose port
+EXPOSE 3001
+
+# Start command
+CMD ["npm", "run", "dev:api"]

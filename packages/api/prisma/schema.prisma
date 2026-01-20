@@ -1,0 +1,75 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id          String    @id @default(uuid())
+  name        String    @db.VarChar(100)
+  email       String    @unique @db.VarChar(120)
+  password    String?   @db.VarChar(60)
+  isAdmin     Boolean   @default(false) @map("is_admin")
+  isConfirmed Boolean   @default(false) @map("is_confirmed")
+  confirmedAt DateTime? @map("confirmed_at")
+  createdAt   DateTime  @default(now()) @map("created_at")
+  updatedAt   DateTime  @updatedAt @map("updated_at")
+
+  travelRecords  TravelRecord[]
+  oauthAccounts  OAuth[]
+  supportTickets SupportTicket[]
+
+  @@map("users")
+}
+
+model TravelRecord {
+  id          String   @id @default(uuid())
+  userId      String   @map("user_id")
+  countryCode String   @db.VarChar(2) @map("country_code")
+  date        DateTime @db.Date
+  createdAt   DateTime @default(now()) @map("created_at")
+  updatedAt   DateTime @updatedAt @map("updated_at")
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, date, countryCode])
+  @@index([userId, date])
+  @@map("travel_records")
+}
+
+model OAuth {
+  id         String   @id @default(uuid())
+  provider   String   @db.VarChar(50)
+  providerId String   @db.VarChar(255) @map("provider_id")
+  userId     String   @map("user_id")
+  token      Json?
+  createdAt  DateTime @default(now()) @map("created_at")
+  updatedAt  DateTime @updatedAt @map("updated_at")
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([provider, providerId])
+  @@map("oauth_accounts")
+}
+
+model SupportTicket {
+  id          String   @id @default(uuid())
+  referenceId String   @unique @db.VarChar(10) @map("reference_id")
+  name        String   @db.VarChar(100)
+  email       String   @db.VarChar(120)
+  subject     String   @db.VarChar(200)
+  category    String   @db.VarChar(20)
+  message     String   @db.Text
+  userId      String?  @map("user_id")
+  status      String   @default("open") @db.VarChar(20)
+  notes       String?  @db.Text
+  createdAt   DateTime @default(now()) @map("created_at")
+  updatedAt   DateTime @updatedAt @map("updated_at")
+
+  user User? @relation(fields: [userId], references: [id], onDelete: SetNull)
+
+  @@map("support_tickets")
+}
