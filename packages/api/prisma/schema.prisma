@@ -18,11 +18,72 @@ model User {
   createdAt   DateTime  @default(now()) @map("created_at")
   updatedAt   DateTime  @updatedAt @map("updated_at")
 
-  travelRecords  TravelRecord[]
-  oauthAccounts  OAuth[]
-  supportTickets SupportTicket[]
+  travelRecords           TravelRecord[]
+  oauthAccounts           OAuth[]
+  supportTickets          SupportTicket[]
+  refreshTokens           RefreshToken[]
+  emailConfirmationTokens EmailConfirmationToken[]
+  passwordResetTokens     PasswordResetToken[]
+  loginAttempts           LoginAttempt[]
 
   @@map("users")
+}
+
+model RefreshToken {
+  id        String   @id @default(uuid())
+  token     String   @unique @db.VarChar(64)
+  userId    String   @map("user_id")
+  expiresAt DateTime @map("expires_at")
+  isRevoked Boolean  @default(false) @map("is_revoked")
+  createdAt DateTime @default(now()) @map("created_at")
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+  @@index([token])
+  @@map("refresh_tokens")
+}
+
+model EmailConfirmationToken {
+  id        String   @id @default(uuid())
+  token     String   @unique @db.VarChar(64)
+  userId    String   @unique @map("user_id")
+  expiresAt DateTime @map("expires_at")
+  createdAt DateTime @default(now()) @map("created_at")
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@map("email_confirmation_tokens")
+}
+
+model PasswordResetToken {
+  id        String    @id @default(uuid())
+  token     String    @unique @db.VarChar(64)
+  userId    String    @map("user_id")
+  expiresAt DateTime  @map("expires_at")
+  usedAt    DateTime? @map("used_at")
+  createdAt DateTime  @default(now()) @map("created_at")
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+  @@map("password_reset_tokens")
+}
+
+model LoginAttempt {
+  id        String   @id @default(uuid())
+  userId    String?  @map("user_id")
+  email     String   @db.VarChar(120)
+  success   Boolean
+  ipAddress String   @db.VarChar(45) @map("ip_address")
+  userAgent String?  @db.VarChar(500) @map("user_agent")
+  createdAt DateTime @default(now()) @map("created_at")
+
+  user User? @relation(fields: [userId], references: [id], onDelete: SetNull)
+
+  @@index([email, createdAt])
+  @@index([userId, createdAt])
+  @@map("login_attempts")
 }
 
 model TravelRecord {

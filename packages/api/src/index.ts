@@ -1,6 +1,7 @@
 import express from 'express';
 import cors from 'cors';
 import helmet from 'helmet';
+import cookieParser from 'cookie-parser';
 import { config } from './config/index.js';
 import { logger } from './utils/logger.js';
 import { connectDatabase, disconnectDatabase } from './utils/prisma.js';
@@ -22,6 +23,9 @@ app.use(
     allowedHeaders: ['Content-Type', 'Authorization', 'X-Request-ID'],
   })
 );
+
+// Cookie parser for refresh tokens
+app.use(cookieParser());
 
 // Body parsing middleware
 app.use(express.json({ limit: '10mb' }));

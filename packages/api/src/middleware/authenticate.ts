@@ -1,0 +1,105 @@
+import { Request, Response, NextFunction } from 'express';
+import { tokenService, AccessTokenPayload } from '../services/tokenService.js';
+import { UnauthorizedError, ForbiddenError } from './errorHandler.js';
+
+// Extend Express Request type to include user
+declare global {
+  namespace Express {
+    interface Request {
+      user?: AccessTokenPayload;
+    }
+  }
+}
+
+/**
+ * Middleware to authenticate requests using JWT access token
+ * Requires valid Bearer token in Authorization header
+ */
+export function authenticate(
+  req: Request,
+  _res: Response,
+  next: NextFunction
+): void {
+  try {
+    const authHeader = req.headers.authorization;
+
+    if (!authHeader) {
+      throw new UnauthorizedError('Authorization header required');
+    }
+
+    const parts = authHeader.split(' ');
+
+    if (parts.length !== 2 || parts[0] !== 'Bearer') {
+      throw new UnauthorizedError('Invalid authorization format. Use: Bearer <token>');
+    }
+
+    const token = parts[1];
+
+    try {
+      const payload = tokenService.verifyAccessToken(token);
+      req.user = payload;
+      next();
+    } catch {
+      throw new UnauthorizedError('Invalid or expired token');
+    }
+  } catch (error) {
+    next(error);
+  }
+}
+
+/**
+ * Optional authentication middleware
+ * Attaches user to request if valid token is present, but doesn't fail if missing
+ */
+export function optionalAuth(
+  req: Request,
+  _res: Response,
+  next: NextFunction
+): void {
+  try {
+    const authHeader = req.headers.authorization;
+
+    if (!authHeader) {
+      return next();
+    }
+
+    const parts = authHeader.split(' ');
+
+    if (parts.length !== 2 || parts[0] !== 'Bearer') {
+      return next();
+    }
+
+    const token = parts[1];
+
+    try {
+      const payload = tokenService.verifyAccessToken(token);
+      req.user = payload;
+    } catch {
+      // Token invalid, continue without user
+    }
+
+    next();
+  } catch (error) {
+    next(error);
+  }
+}
+
+/**
+ * Middleware to require admin privileges
+ * Must be used after authenticate middleware
+ */
+export function requireAdmin(
+  req: Request,
+  _res: Response,
+  next: NextFunction
+): void {
+  if (!req.user) {
+    return next(new UnauthorizedError('Authentication required'));
+  }
+
+  if (!req.user.isAdmin) {
+    return next(new ForbiddenError('Admin access required'));
+  }
+
+  next();
+}
