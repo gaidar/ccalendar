@@ -76,3 +76,36 @@ The rate limiter SHALL use Redis for distributed storage.
 - **THEN** rate limiting SHALL fall back to in-memory storage
 - **AND** a warning SHALL be logged
 
+### Requirement: Redis-Based Export Rate Limiting
+The export rate limiter SHALL use Redis for distributed rate limiting across multiple server instances.
+
+#### Scenario: Rate limit counting
+- **WHEN** a user requests an export
+- **THEN** the system SHALL increment a Redis counter with key `export:ratelimit:{userId}`
+- **AND** set TTL of 1 hour on first request in window
+
+#### Scenario: Rate limit exceeded
+- **WHEN** user exceeds 5 export requests per hour
+- **THEN** the system SHALL return HTTP 429 with error code `RATE_LIMIT_EXCEEDED`
+- **AND** include `Retry-After` header with seconds until reset
+
+#### Scenario: Redis unavailable fallback
+- **WHEN** Redis is unavailable
+- **THEN** the system SHALL allow the export request
+- **AND** log a warning about rate limiter fallback
+
+### Requirement: Export Rate Limiter Memory Management
+The in-memory export rate limiter (if used) SHALL minimize memory accumulation.
+
+#### Scenario: Cleanup frequency
+- **WHEN** the server is running
+- **THEN** the rate limiter SHALL clean up expired entries every 5 minutes
+- **AND** NOT accumulate stale entries for extended periods
+
+#### Scenario: Entry expiration
+- **WHEN** a rate limit window expires
+- **THEN** the entry SHALL be removed during the next cleanup cycle
+- **AND** memory SHALL be released
+
+Note: This requirement becomes obsolete when Redis-based rate limiting is implemented (fix-critical-issues change).
+
