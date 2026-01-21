@@ -4,6 +4,7 @@ import countriesRouter from './countries.js';
 import authRouter from './auth.js';
 import travelRecordsRouter from './travelRecords.js';
 import reportsRouter from './reports.js';
+import profileRouter from './profile.js';
 
 const router = Router();
 
@@ -21,5 +22,8 @@ router.use('/travel-records', travelRecordsRouter);
 
 // Reports endpoints
 router.use('/reports', reportsRouter);
+
+// Profile endpoints
+router.use('/profile', profileRouter);
 
 export default router;

@@ -101,3 +101,42 @@ export interface CountryStatisticsResponse {
 export type PresetPeriod = 7 | 30 | 90 | 365;
 
 export type ExportFormat = 'csv' | 'xlsx';
+
+// Profile types
+export interface ProfileStats {
+  totalCountries: number;
+  totalDays: number;
+}
+
+export interface Profile {
+  id: string;
+  name: string;
+  email: string;
+  isAdmin: boolean;
+  createdAt: string;
+  stats: ProfileStats;
+  oauthProviders: string[];
+  hasPassword: boolean;
+}
+
+export interface ProfileResponse {
+  profile: Profile;
+}
+
+export interface ProfileUpdateResponse {
+  profile: Profile;
+  message: string;
+}
+
+export interface UpdateProfileData {
+  name?: string;
+  email?: string;
+}
+
+export interface ChangePasswordData {
+  currentPassword?: string;
+  newPassword: string;
+  confirmPassword: string;
+}
+
+export type OAuthProvider = 'google' | 'facebook' | 'apple';

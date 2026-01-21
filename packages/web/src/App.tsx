@@ -15,6 +15,7 @@ import EmailConfirmationPage from '@/pages/EmailConfirmationPage';
 import OAuthCallbackPage from '@/pages/OAuthCallbackPage';
 import CalendarPage from '@/pages/CalendarPage';
 import ReportsPage from '@/pages/ReportsPage';
+import ProfilePage from '@/pages/ProfilePage';
 import NotFoundPage from '@/pages/NotFoundPage';
 
 function App() {
@@ -69,10 +70,7 @@ function App() {
             path="/profile"
             element={
               <ProtectedRoute>
-                <div className="container mx-auto px-4 py-8">
-                  <h1 className="text-2xl font-bold">Profile</h1>
-                  <p className="text-muted-foreground">Coming soon...</p>
-                </div>
+                <ProfilePage />
               </ProtectedRoute>
             }
           />
