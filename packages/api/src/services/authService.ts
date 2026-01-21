@@ -154,12 +154,14 @@ export const authService = {
       },
     });
 
-    // If successful, delete old failed attempts for this email
+    // If successful, delete old failed attempts for this email (older than 30 days)
     if (success) {
+      const thirtyDaysAgo = new Date(Date.now() - 30 * 24 * 60 * 60 * 1000);
       await prisma.loginAttempt.deleteMany({
         where: {
           email,
           success: false,
+          createdAt: { lt: thirtyDaysAgo },
         },
       });
     }

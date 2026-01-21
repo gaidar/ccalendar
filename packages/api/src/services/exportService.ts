@@ -24,9 +24,20 @@ function generateFilename(format: ExportFormat, start: string, end: string): str
   return `travel-records_${start}_to_${end}_exported_${timestamp}.${format}`;
 }
 
+/**
+ * Escapes a CSV field if it contains special characters
+ */
+function escapeCsvField(field: string): string {
+  if (field.includes(',') || field.includes('"') || field.includes('\n')) {
+    return `"${field.replace(/"/g, '""')}"`;
+  }
+  return field;
+}
+
 class ExportService {
   /**
-   * Export travel records to CSV format with streaming
+   * Export travel records to CSV format with true streaming
+   * Uses async generator to avoid building entire CSV in memory
    */
   async exportToCsv(
     userId: string,
@@ -35,20 +46,19 @@ class ExportService {
   ): Promise<ExportResult> {
     const records = await reportsService.getRecordsForExport(userId, start, end);
 
-    // Create a readable stream for CSV
-    const csvHeader = 'date,country_code,country_name\n';
-    let csvContent = csvHeader;
+    // Async generator for streaming CSV rows
+    async function* generateCsvStream(): AsyncGenerator<string> {
+      // Yield header first
+      yield 'date,country_code,country_name\n';
 
-    for (const record of records) {
-      // Escape fields that might contain commas or quotes
-      const escapedName = record.countryName.includes(',') || record.countryName.includes('"')
-        ? `"${record.countryName.replace(/"/g, '""')}"`
-        : record.countryName;
-
-      csvContent += `${record.date},${record.countryCode},${escapedName}\n`;
+      // Yield each record as a CSV row
+      for (const record of records) {
+        const escapedName = escapeCsvField(record.countryName);
+        yield `${record.date},${record.countryCode},${escapedName}\n`;
+      }
     }
 
-    const stream = Readable.from([csvContent]);
+    const stream = Readable.from(generateCsvStream());
 
     return {
       stream,

@@ -19,6 +19,11 @@ export interface BulkUpdateResult {
 export interface RecordsListResponse {
   records: TravelRecordResponse[];
   total: number;
+  pagination?: {
+    page: number;
+    limit: number;
+    pages: number;
+  };
 }
 
 /**
@@ -122,24 +127,54 @@ class TravelRecordsService {
   }
 
   /**
-   * Get all travel records for a user within a date range
+   * Get travel records for a user within a date range with optional pagination
    */
   async getRecordsByDateRange(
     userId: string,
     start: string,
-    end: string
+    end: string,
+    page?: number,
+    limit?: number
   ): Promise<RecordsListResponse> {
     const startDate = new Date(start);
     const endDate = new Date(end);
 
-    const records = await prisma.travelRecord.findMany({
-      where: {
-        userId,
-        date: {
-          gte: startDate,
-          lte: endDate,
-        },
+    const where = {
+      userId,
+      date: {
+        gte: startDate,
+        lte: endDate,
       },
+    };
+
+    // If pagination is requested
+    if (page !== undefined && limit !== undefined) {
+      const skip = (page - 1) * limit;
+
+      const [records, total] = await Promise.all([
+        prisma.travelRecord.findMany({
+          where,
+          orderBy: [{ date: 'asc' }, { countryCode: 'asc' }],
+          skip,
+          take: limit,
+        }),
+        prisma.travelRecord.count({ where }),
+      ]);
+
+      return {
+        records: records.map(toResponse),
+        total,
+        pagination: {
+          page,
+          limit,
+          pages: Math.ceil(total / limit),
+        },
+      };
+    }
+
+    // No pagination - return all records
+    const records = await prisma.travelRecord.findMany({
+      where,
       orderBy: [{ date: 'asc' }, { countryCode: 'asc' }],
     });
 

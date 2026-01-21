@@ -63,8 +63,8 @@ export async function deleteRecord(
 }
 
 /**
- * GET /travel-records?start=YYYY-MM-DD&end=YYYY-MM-DD
- * Get travel records within a date range
+ * GET /travel-records?start=YYYY-MM-DD&end=YYYY-MM-DD&page=1&limit=100
+ * Get travel records within a date range with optional pagination
  */
 export async function getRecordsByDateRange(
   req: Request,
@@ -81,7 +81,9 @@ export async function getRecordsByDateRange(
     const result = await travelRecordsService.getRecordsByDateRange(
       req.user.userId,
       query.start,
-      query.end
+      query.end,
+      query.page,
+      query.limit
     );
 
     res.status(200).json(result);

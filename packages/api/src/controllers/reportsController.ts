@@ -1,7 +1,7 @@
 import { Request, Response, NextFunction } from 'express';
 import { reportsService } from '../services/reportsService.js';
 import { exportService } from '../services/exportService.js';
-import { exportRateLimiter, type RateLimitInfo } from '../services/exportRateLimiter.js';
+import { redisExportRateLimiter, type RateLimitInfo } from '../services/redisExportRateLimiter.js';
 import {
   summaryQuerySchema,
   exportQuerySchema,
@@ -127,7 +127,7 @@ export async function exportRecords(
     const input = exportQuerySchema.parse(req.query);
 
     // Check rate limit
-    const rateLimitInfo = exportRateLimiter.checkAndIncrement(req.user.userId);
+    const rateLimitInfo = await redisExportRateLimiter.checkAndIncrement(req.user.userId);
     addRateLimitHeaders(res, rateLimitInfo);
 
     if (!rateLimitInfo.allowed) {
@@ -151,6 +151,11 @@ export async function exportRecords(
       'Content-Disposition',
       `attachment; filename="${result.filename}"`
     );
+
+    // Add error handler for stream before piping
+    result.stream.on('error', (err) => {
+      next(err);
+    });
 
     // Stream the response
     result.stream.pipe(res);

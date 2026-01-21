@@ -16,6 +16,7 @@ import { passport, configurePassport } from './config/passport.js';
 import { initSentry, Sentry } from './utils/sentry.js';
 import { disconnectRedis, getRedisClient } from './utils/redis.js';
 import routes from './routes/index.js';
+import { startTokenCleanupJob, stopTokenCleanupJob } from './jobs/tokenCleanup.js';
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const isProduction = config.env === 'production';
@@ -149,6 +150,7 @@ async function shutdown(signal: string): Promise<void> {
   logger.info(`Received ${signal}. Starting graceful shutdown...`);
 
   try {
+    stopTokenCleanupJob();
     await Promise.all([
       disconnectDatabase(),
       disconnectRedis(),
@@ -171,6 +173,9 @@ async function start(): Promise<void> {
 
     // Initialize Redis connection (non-blocking)
     getRedisClient();
+
+    // Start scheduled jobs
+    startTokenCleanupJob();
 
     app.listen(config.port, () => {
       logger.info(`Server running on port ${config.port} in ${config.env} mode`);

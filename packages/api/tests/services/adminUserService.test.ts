@@ -14,8 +14,7 @@ vi.mock('../../src/utils/prisma.js', () => ({
       delete: vi.fn(),
     },
     travelRecord: {
-      count: vi.fn(),
-      groupBy: vi.fn(),
+      findMany: vi.fn(),
     },
   },
 }));
@@ -114,11 +113,11 @@ describe('AdminUserService', () => {
         isAdmin: false,
         isConfirmed: true,
         createdAt: new Date('2024-01-01'),
+        _count: { travelRecords: 10 },
       };
 
       vi.mocked(prisma.user.findUnique).mockResolvedValue(mockUser as never);
-      vi.mocked(prisma.travelRecord.count).mockResolvedValue(10);
-      vi.mocked(prisma.travelRecord.groupBy).mockResolvedValue([
+      vi.mocked(prisma.travelRecord.findMany).mockResolvedValue([
         { countryCode: 'US' },
         { countryCode: 'GB' },
         { countryCode: 'FR' },
@@ -127,7 +126,12 @@ describe('AdminUserService', () => {
       const result = await adminUserService.getUserById(mockUserId);
 
       expect(result).toEqual({
-        ...mockUser,
+        id: mockUserId,
+        name: 'Test User',
+        email: 'test@example.com',
+        isAdmin: false,
+        isConfirmed: true,
+        createdAt: new Date('2024-01-01'),
         stats: {
           totalRecords: 10,
           totalCountries: 3,
@@ -137,6 +141,7 @@ describe('AdminUserService', () => {
 
     it('should throw NotFoundError for non-existent user', async () => {
       vi.mocked(prisma.user.findUnique).mockResolvedValue(null);
+      vi.mocked(prisma.travelRecord.findMany).mockResolvedValue([]);
 
       await expect(adminUserService.getUserById(mockUserId)).rejects.toThrow(NotFoundError);
     });

@@ -1,5 +1,6 @@
 import { randomBytes } from 'crypto';
 import { prisma } from '../utils/prisma.js';
+import { HttpError } from '../middleware/errorHandler.js';
 import type { CreateTicketInput, SupportCategory } from '../validators/support.js';
 
 export interface SupportTicket {
@@ -59,7 +60,7 @@ class SupportService {
     } while (attempts < maxAttempts);
 
     if (attempts >= maxAttempts) {
-      throw new Error('Failed to generate unique reference ID');
+      throw new HttpError(500, 'REFERENCE_ID_GENERATION_FAILED', 'Failed to generate unique reference ID');
     }
 
     const ticket = await prisma.supportTicket.create({

@@ -3,6 +3,7 @@ import appleSignIn from 'apple-signin-auth';
 import { oauthService, type OAuthProfile } from '../services/oauthService.js';
 import { config } from '../config/index.js';
 import { HttpError } from '../middleware/errorHandler.js';
+import { logger } from '../utils/logger.js';
 import type { LoginResult } from '../services/authService.js';
 
 const REFRESH_TOKEN_COOKIE_OPTIONS = {
@@ -57,7 +58,7 @@ export function handleOAuthError(
   res: Response,
   _next: NextFunction
 ): void {
-  console.error('OAuth error:', err.message);
+  logger.error('OAuth error', { error: err.message });
 
   const errorMessage = encodeURIComponent(err.message || 'Authentication failed');
   res.redirect(`${config.frontend.url}/login?error=${errorMessage}`);

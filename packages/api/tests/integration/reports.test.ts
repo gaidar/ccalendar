@@ -3,7 +3,45 @@ import request from 'supertest';
 import { createTestApp } from '../testApp.js';
 import { prisma } from '../../src/utils/prisma.js';
 import { tokenService } from '../../src/services/tokenService.js';
-import { exportRateLimiter } from '../../src/services/exportRateLimiter.js';
+
+// Track Redis rate limit counts per user
+const mockRedisStore = new Map<string, { count: number; expireAt: number }>();
+
+// Mock Redis client
+vi.mock('../../src/utils/redis.js', () => ({
+  getRedisClient: () => ({
+    incr: vi.fn(async (key: string) => {
+      const existing = mockRedisStore.get(key);
+      if (existing && existing.expireAt > Date.now()) {
+        existing.count++;
+        return existing.count;
+      }
+      mockRedisStore.set(key, { count: 1, expireAt: Date.now() + 3600000 });
+      return 1;
+    }),
+    expire: vi.fn(async () => true),
+    ttl: vi.fn(async (key: string) => {
+      const existing = mockRedisStore.get(key);
+      if (existing && existing.expireAt > Date.now()) {
+        return Math.ceil((existing.expireAt - Date.now()) / 1000);
+      }
+      return -2;
+    }),
+    get: vi.fn(async (key: string) => {
+      const existing = mockRedisStore.get(key);
+      if (existing && existing.expireAt > Date.now()) {
+        return String(existing.count);
+      }
+      return null;
+    }),
+    del: vi.fn(async (key: string) => {
+      mockRedisStore.delete(key);
+      return 1;
+    }),
+  }),
+  isRedisAvailable: () => true,
+  disconnectRedis: vi.fn(),
+}));
 
 // Mock Prisma client
 vi.mock('../../src/utils/prisma.js', () => ({
@@ -49,7 +87,7 @@ describe('Reports Integration Tests', () => {
 
   beforeEach(() => {
     vi.clearAllMocks();
-    exportRateLimiter.clearAll();
+    mockRedisStore.clear();
 
     // Generate a valid access token
     validToken = tokenService.generateAccessToken({

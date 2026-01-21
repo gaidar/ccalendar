@@ -12,7 +12,7 @@ vi.mock('../../src/utils/prisma.js', () => ({
       count: vi.fn(),
     },
     loginAttempt: {
-      groupBy: vi.fn(),
+      findMany: vi.fn(),
     },
     supportTicket: {
       count: vi.fn(),
@@ -29,7 +29,7 @@ describe('AdminStatsService', () => {
     it('should return system statistics', async () => {
       vi.mocked(prisma.user.count).mockResolvedValue(100);
       vi.mocked(prisma.travelRecord.count).mockResolvedValue(500);
-      vi.mocked(prisma.loginAttempt.groupBy).mockResolvedValue([
+      vi.mocked(prisma.loginAttempt.findMany).mockResolvedValue([
         { userId: 'user-1' },
         { userId: 'user-2' },
         { userId: 'user-3' },
@@ -49,25 +49,26 @@ describe('AdminStatsService', () => {
     it('should filter active users by last 30 days', async () => {
       vi.mocked(prisma.user.count).mockResolvedValue(0);
       vi.mocked(prisma.travelRecord.count).mockResolvedValue(0);
-      vi.mocked(prisma.loginAttempt.groupBy).mockResolvedValue([]);
+      vi.mocked(prisma.loginAttempt.findMany).mockResolvedValue([]);
       vi.mocked(prisma.supportTicket.count).mockResolvedValue(0);
 
       await adminStatsService.getSystemStats();
 
-      expect(prisma.loginAttempt.groupBy).toHaveBeenCalledWith({
-        by: ['userId'],
+      expect(prisma.loginAttempt.findMany).toHaveBeenCalledWith({
         where: {
           success: true,
           createdAt: { gte: expect.any(Date) },
           userId: { not: null },
         },
+        distinct: ['userId'],
+        select: { userId: true },
       });
     });
 
     it('should filter open tickets correctly', async () => {
       vi.mocked(prisma.user.count).mockResolvedValue(0);
       vi.mocked(prisma.travelRecord.count).mockResolvedValue(0);
-      vi.mocked(prisma.loginAttempt.groupBy).mockResolvedValue([]);
+      vi.mocked(prisma.loginAttempt.findMany).mockResolvedValue([]);
       vi.mocked(prisma.supportTicket.count).mockResolvedValue(10);
 
       await adminStatsService.getSystemStats();
@@ -80,7 +81,7 @@ describe('AdminStatsService', () => {
     it('should handle zero stats', async () => {
       vi.mocked(prisma.user.count).mockResolvedValue(0);
       vi.mocked(prisma.travelRecord.count).mockResolvedValue(0);
-      vi.mocked(prisma.loginAttempt.groupBy).mockResolvedValue([]);
+      vi.mocked(prisma.loginAttempt.findMany).mockResolvedValue([]);
       vi.mocked(prisma.supportTicket.count).mockResolvedValue(0);
 
       const result = await adminStatsService.getSystemStats();

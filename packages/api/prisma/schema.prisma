@@ -83,6 +83,7 @@ model LoginAttempt {
 
   @@index([email, createdAt])
   @@index([userId, createdAt])
+  @@index([success, createdAt])
   @@map("login_attempts")
 }
 

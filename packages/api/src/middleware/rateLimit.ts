@@ -141,8 +141,8 @@ export const travelRecordsRateLimiter = rateLimit({
   handler: createRateLimitResponse('Too many requests. Please try again later.'),
   // Use user ID if authenticated, otherwise fall back to IP
   keyGenerator: (req) => {
-    const user = req.user as { id?: string } | undefined;
-    return user?.id || req.ip || 'unknown';
+    const user = req.user as { userId?: string } | undefined;
+    return user?.userId || req.ip || 'unknown';
   },
 });
 
@@ -157,7 +157,7 @@ export const exportRateLimiter = rateLimit({
   handler: createRateLimitResponse('Too many export requests. Please try again later.'),
   // Use user ID if authenticated, otherwise fall back to IP
   keyGenerator: (req) => {
-    const user = req.user as { id?: string } | undefined;
-    return user?.id || req.ip || 'unknown';
+    const user = req.user as { userId?: string } | undefined;
+    return user?.userId || req.ip || 'unknown';
   },
 });

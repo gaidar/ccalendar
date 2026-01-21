@@ -16,7 +16,7 @@ vi.mock('../../src/utils/prisma.js', () => ({
     },
     travelRecord: {
       count: vi.fn(),
-      groupBy: vi.fn(),
+      findMany: vi.fn(),
     },
     supportTicket: {
       findMany: vi.fn(),
@@ -26,7 +26,7 @@ vi.mock('../../src/utils/prisma.js', () => ({
       delete: vi.fn(),
     },
     loginAttempt: {
-      groupBy: vi.fn(),
+      findMany: vi.fn(),
     },
     auditLog: {
       create: vi.fn(),
@@ -143,11 +143,11 @@ describe('Admin Integration Tests', () => {
         isAdmin: false,
         isConfirmed: true,
         createdAt: new Date('2024-01-01'),
+        _count: { travelRecords: 10 },
       };
 
       vi.mocked(prisma.user.findUnique).mockResolvedValue(mockUser as never);
-      vi.mocked(prisma.travelRecord.count).mockResolvedValue(10);
-      vi.mocked(prisma.travelRecord.groupBy).mockResolvedValue([
+      vi.mocked(prisma.travelRecord.findMany).mockResolvedValue([
         { countryCode: 'US' },
         { countryCode: 'GB' },
       ] as never);
@@ -391,7 +391,7 @@ describe('Admin Integration Tests', () => {
     it('should return system statistics', async () => {
       vi.mocked(prisma.user.count).mockResolvedValue(100);
       vi.mocked(prisma.travelRecord.count).mockResolvedValue(500);
-      vi.mocked(prisma.loginAttempt.groupBy).mockResolvedValue([
+      vi.mocked(prisma.loginAttempt.findMany).mockResolvedValue([
         { userId: 'user-1' },
         { userId: 'user-2' },
       ] as never);
@@ -420,11 +420,11 @@ describe('Admin Integration Tests', () => {
         isAdmin: false,
         isConfirmed: true,
         createdAt: new Date('2024-01-01'),
+        _count: { travelRecords: 0 },
       };
 
       vi.mocked(prisma.user.findUnique).mockResolvedValue(mockUser as never);
-      vi.mocked(prisma.travelRecord.count).mockResolvedValue(0);
-      vi.mocked(prisma.travelRecord.groupBy).mockResolvedValue([]);
+      vi.mocked(prisma.travelRecord.findMany).mockResolvedValue([]);
 
       await request(app)
         .get(`/api/v1/admin/users/${regularUserId}`)

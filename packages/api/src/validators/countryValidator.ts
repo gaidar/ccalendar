@@ -13,6 +13,11 @@ const MAX_BULK_COUNTRIES = 10;
 // Maximum days per bulk update range
 const MAX_BULK_DAYS = 365;
 
+// Pagination defaults
+const DEFAULT_PAGE = 1;
+const DEFAULT_LIMIT = 100;
+const MAX_LIMIT = 1000;
+
 /**
  * Validates and normalizes a country code to uppercase ISO 3166-1 alpha-2
  */
@@ -80,7 +85,7 @@ export const createRecordSchema = z.object({
 });
 
 /**
- * Schema for date range query parameters
+ * Schema for date range query parameters with optional pagination
  */
 export const dateRangeQuerySchema = z
   .object({
@@ -92,6 +97,19 @@ export const dateRangeQuerySchema = z
       .string()
       .min(1, 'End date is required')
       .regex(DATE_FORMAT_REGEX, 'End date must be in YYYY-MM-DD format'),
+    page: z.coerce
+      .number()
+      .int()
+      .min(1, 'Page must be at least 1')
+      .default(DEFAULT_PAGE)
+      .optional(),
+    limit: z.coerce
+      .number()
+      .int()
+      .min(1, 'Limit must be at least 1')
+      .max(MAX_LIMIT, `Limit cannot exceed ${MAX_LIMIT}`)
+      .default(DEFAULT_LIMIT)
+      .optional(),
   })
   .refine(
     data => {

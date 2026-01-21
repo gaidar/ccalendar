@@ -15,17 +15,19 @@ export const adminStatsService = {
     const thirtyDaysAgo = new Date();
     thirtyDaysAgo.setDate(thirtyDaysAgo.getDate() - 30);
 
-    const [totalUsers, totalRecords, activeUsers30Days, openTickets] =
+    const [totalUsers, totalRecords, activeUsers, openTickets] =
       await Promise.all([
         prisma.user.count(),
         prisma.travelRecord.count(),
-        prisma.loginAttempt.groupBy({
-          by: ['userId'],
+        // Use findMany with distinct instead of groupBy for better performance
+        prisma.loginAttempt.findMany({
           where: {
             success: true,
             createdAt: { gte: thirtyDaysAgo },
             userId: { not: null },
           },
+          distinct: ['userId'],
+          select: { userId: true },
         }),
         prisma.supportTicket.count({
           where: { status: 'open' },
@@ -35,7 +37,7 @@ export const adminStatsService = {
     return {
       totalUsers,
       totalRecords,
-      activeUsers30Days: activeUsers30Days.length,
+      activeUsers30Days: activeUsers.length,
       openTickets,
     };
   },

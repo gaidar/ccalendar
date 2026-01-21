@@ -2,10 +2,17 @@
 const API_BASE_URL = import.meta.env.VITE_API_URL ||
   (import.meta.env.PROD ? '/api/v1' : 'http://localhost:3001/api/v1');
 
+// Default request timeout in milliseconds
+const DEFAULT_TIMEOUT_MS = 30000;
+
 interface ApiError {
   error: string;
   message: string;
   details: unknown[];
+}
+
+interface RequestOptions extends RequestInit {
+  timeout?: number;
 }
 
 class ApiClient {
@@ -21,10 +28,11 @@ class ApiClient {
 
   private async request<T>(
     endpoint: string,
-    options: RequestInit = {}
+    options: RequestOptions = {}
   ): Promise<T> {
     const url = `${this.baseUrl}${endpoint}`;
     const token = this.getAuthToken();
+    const timeout = options.timeout ?? DEFAULT_TIMEOUT_MS;
 
     const headers: HeadersInit = {
       'Content-Type': 'application/json',
@@ -35,24 +43,48 @@ class ApiClient {
       (headers as Record<string, string>)['Authorization'] = `Bearer ${token}`;
     }
 
-    const response = await fetch(url, {
-      ...options,
-      headers,
-      credentials: 'include',
-    });
+    // Create AbortController for timeout
+    const controller = new AbortController();
+    const timeoutId = setTimeout(() => controller.abort(), timeout);
 
-    if (response.status === 401) {
-      localStorage.removeItem('accessToken');
-      window.location.href = '/login';
-      throw new Error('Unauthorized');
+    try {
+      const response = await fetch(url, {
+        ...options,
+        headers,
+        credentials: 'include',
+        signal: controller.signal,
+      });
+
+      if (response.status === 401) {
+        localStorage.removeItem('accessToken');
+        window.location.href = '/login';
+        throw new Error('Unauthorized');
+      }
+
+      if (!response.ok) {
+        // Safely parse error response
+        try {
+          const error: ApiError = await response.json();
+          throw new Error(error.message || 'An error occurred');
+        } catch {
+          throw new Error(`Request failed with status ${response.status}`);
+        }
+      }
+
+      // Safely parse success response
+      try {
+        return await response.json();
+      } catch {
+        throw new Error('Invalid response format from server');
+      }
+    } catch (error) {
+      if (error instanceof Error && error.name === 'AbortError') {
+        throw new Error('Request timed out. Please try again.');
+      }
+      throw error;
+    } finally {
+      clearTimeout(timeoutId);
     }
-
-    if (!response.ok) {
-      const error: ApiError = await response.json();
-      throw new Error(error.message || 'An error occurred');
-    }
-
-    return response.json();
   }
 
   get<T>(endpoint: string): Promise<T> {

@@ -38,6 +38,8 @@ function validateEnv(): z.infer<typeof envSchema> {
   const result = envSchema.safeParse(process.env);
 
   if (!result.success) {
+    // Use console.error here since logger may not be initialized yet
+    // This is during startup before the app is fully configured
     console.error('Environment validation failed:');
     result.error.issues.forEach(issue => {
       console.error(`  - ${issue.path.join('.')}: ${issue.message}`);

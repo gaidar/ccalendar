@@ -78,35 +78,42 @@ export const adminUserService = {
    * Get user by ID with stats
    */
   async getUserById(id: string): Promise<AdminUserWithStats> {
-    const user = await prisma.user.findUnique({
-      where: { id },
-      select: {
-        id: true,
-        name: true,
-        email: true,
-        isAdmin: true,
-        isConfirmed: true,
-        createdAt: true,
-      },
-    });
+    // Combine user fetch with record count using _count
+    const [user, countries] = await Promise.all([
+      prisma.user.findUnique({
+        where: { id },
+        select: {
+          id: true,
+          name: true,
+          email: true,
+          isAdmin: true,
+          isConfirmed: true,
+          createdAt: true,
+          _count: {
+            select: { travelRecords: true },
+          },
+        },
+      }),
+      prisma.travelRecord.findMany({
+        where: { userId: id },
+        distinct: ['countryCode'],
+        select: { countryCode: true },
+      }),
+    ]);
 
     if (!user) {
       throw new NotFoundError('User not found');
     }
 
-    // Get user stats
-    const [totalRecords, countries] = await Promise.all([
-      prisma.travelRecord.count({ where: { userId: id } }),
-      prisma.travelRecord.groupBy({
-        by: ['countryCode'],
-        where: { userId: id },
-      }),
-    ]);
-
     return {
-      ...user,
+      id: user.id,
+      name: user.name,
+      email: user.email,
+      isAdmin: user.isAdmin,
+      isConfirmed: user.isConfirmed,
+      createdAt: user.createdAt,
       stats: {
-        totalRecords,
+        totalRecords: user._count.travelRecords,
         totalCountries: countries.length,
       },
     };

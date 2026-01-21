@@ -73,14 +73,19 @@ function getEndDate(): Date {
   return today;
 }
 
+// Default limit for topCountries in summary
+const DEFAULT_TOP_COUNTRIES_LIMIT = 10;
+
 class ReportsService {
   /**
    * Get summary statistics for a user's travel records
+   * @param topCountriesLimit - Maximum number of countries to return in topCountries (default: 10)
    */
   async getSummary(
     userId: string,
     daysOrStart: PresetPeriod | string,
-    end?: string
+    end?: string,
+    topCountriesLimit: number = DEFAULT_TOP_COUNTRIES_LIMIT
   ): Promise<SummaryResponse> {
     let startDate: Date;
     let endDate: Date;
@@ -127,9 +132,10 @@ class ReportsService {
       countryDays.set(record.countryCode, current + 1);
     }
 
-    // Sort by days descending and build top countries list
+    // Sort by days descending and build top countries list (limited)
     const topCountries: TopCountry[] = Array.from(countryDays.entries())
       .sort((a, b) => b[1] - a[1])
+      .slice(0, topCountriesLimit)
       .map(([code, days]) => {
         const country = countriesService.getCountryByCode(code);
         return {
