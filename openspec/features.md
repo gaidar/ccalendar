@@ -99,13 +99,13 @@ Data visualization and export capabilities.
 
 | Status | Feature | Spec | Priority | Notes |
 |--------|---------|------|----------|-------|
-| `[ ]` | Summary report endpoint | `[ ]` | P1 | Total days, countries, top countries |
-| `[ ]` | Dashboard summary cards | `[ ]` | P1 | Quick stats display |
-| `[ ]` | Country statistics view | `[ ]` | P1 | Days per country list |
-| `[ ]` | Export to CSV | `[ ]` | P1 | Streaming download |
-| `[ ]` | Export to XLSX | `[ ]` | P2 | Formatted Excel file |
-| `[ ]` | Date range filter for reports | `[ ]` | P1 | 7/30/90/365 days + custom |
-| `[ ]` | Export rate limiting | `[ ]` | P1 | 5 per hour |
+| `[X]` | Summary report endpoint | `[X]` | P1 | Total days, countries, top countries |
+| `[X]` | Dashboard summary cards | `[X]` | P1 | Quick stats display |
+| `[X]` | Country statistics view | `[X]` | P1 | Days per country list |
+| `[X]` | Export to CSV | `[X]` | P1 | Streaming download |
+| `[X]` | Export to XLSX | `[X]` | P2 | Formatted Excel file |
+| `[X]` | Date range filter for reports | `[X]` | P1 | 7/30/90/365 days + custom |
+| `[X]` | Export rate limiting | `[X]` | P1 | 5 per hour |
 
 ## Phase 7: User Profile
 
