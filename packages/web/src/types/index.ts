@@ -63,3 +63,41 @@ export interface HealthResponse {
   version: string;
   database: 'connected' | 'disconnected';
 }
+
+// Reports types
+export interface TopCountry {
+  code: string;
+  name: string;
+  color: string;
+  days: number;
+}
+
+export interface SummaryPeriod {
+  start: string;
+  end: string;
+}
+
+export interface SummaryResponse {
+  totalDays: number;
+  totalCountries: number;
+  topCountries: TopCountry[];
+  period: SummaryPeriod;
+}
+
+export interface CountryStatistic {
+  code: string;
+  name: string;
+  color: string;
+  days: number;
+  percentage: number;
+}
+
+export interface CountryStatisticsResponse {
+  countries: CountryStatistic[];
+  totalDays: number;
+  period: SummaryPeriod;
+}
+
+export type PresetPeriod = 7 | 30 | 90 | 365;
+
+export type ExportFormat = 'csv' | 'xlsx';
