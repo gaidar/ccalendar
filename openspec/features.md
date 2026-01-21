@@ -65,15 +65,15 @@ Public-facing pages and authentication UI.
 
 | Status | Feature | Spec | Priority | Notes |
 |--------|---------|------|----------|-------|
-| `[ ]` | Landing page | `[ ]` | P0 | Hero, features, CTA |
-| `[ ]` | Login page | `[ ]` | P0 | Form + OAuth buttons |
-| `[ ]` | Register page | `[ ]` | P0 | Form + OAuth buttons |
-| `[ ]` | Password reset request page | `[ ]` | P1 | Email input form |
-| `[ ]` | Password reset page | `[ ]` | P1 | New password form |
-| `[ ]` | Email confirmation page | `[ ]` | P1 | Token verification |
-| `[ ]` | OAuth callback handling | `[ ]` | P1 | Redirect with token |
-| `[ ]` | Responsive header/navigation | `[ ]` | P0 | Mobile hamburger, desktop nav |
-| `[ ]` | Mobile bottom navigation | `[ ]` | P1 | Calendar, Reports, Profile |
+| `[X]` | Landing page | `[X]` | P0 | Hero, features, CTA |
+| `[X]` | Login page | `[X]` | P0 | Form + OAuth buttons |
+| `[X]` | Register page | `[X]` | P0 | Form + OAuth buttons |
+| `[X]` | Password reset request page | `[X]` | P1 | Email input form |
+| `[X]` | Password reset page | `[X]` | P1 | New password form |
+| `[X]` | Email confirmation page | `[X]` | P1 | Token verification |
+| `[X]` | OAuth callback handling | `[X]` | P1 | Redirect with token |
+| `[X]` | Responsive header/navigation | `[X]` | P0 | Mobile hamburger, desktop nav |
+| `[X]` | Mobile bottom navigation | `[X]` | P1 | Calendar, Reports, Profile |
 
 ## Phase 5: Frontend - Calendar View
 
