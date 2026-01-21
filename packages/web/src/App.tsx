@@ -16,6 +16,8 @@ import OAuthCallbackPage from '@/pages/OAuthCallbackPage';
 import CalendarPage from '@/pages/CalendarPage';
 import ReportsPage from '@/pages/ReportsPage';
 import ProfilePage from '@/pages/ProfilePage';
+import SupportPage from '@/pages/SupportPage';
+import SupportConfirmationPage from '@/pages/SupportConfirmationPage';
 import NotFoundPage from '@/pages/NotFoundPage';
 
 function App() {
@@ -80,8 +82,11 @@ function App() {
         <Route element={<Layout showMobileNav={false} />}>
           <Route path="/privacy" element={<div className="container mx-auto px-4 py-8"><h1 className="text-2xl font-bold">Privacy Policy</h1></div>} />
           <Route path="/terms" element={<div className="container mx-auto px-4 py-8"><h1 className="text-2xl font-bold">Terms of Service</h1></div>} />
-          <Route path="/support" element={<div className="container mx-auto px-4 py-8"><h1 className="text-2xl font-bold">Support</h1></div>} />
         </Route>
+
+        {/* Support pages (standalone) */}
+        <Route path="/support" element={<SupportPage />} />
+        <Route path="/support/confirmation/:referenceId" element={<SupportConfirmationPage />} />
 
         {/* 404 */}
         <Route path="*" element={<NotFoundPage />} />

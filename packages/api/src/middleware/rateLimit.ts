@@ -92,3 +92,16 @@ export const generalRateLimiter = rateLimit({
   handler: createRateLimitResponse('Too many requests. Please try again later.'),
   skip: () => isTestEnv,
 });
+
+/**
+ * Rate limiter for support ticket creation
+ * 5 tickets per hour per IP
+ */
+export const supportRateLimiter = rateLimit({
+  windowMs: 60 * 60 * 1000, // 1 hour
+  max: 5,
+  standardHeaders: true,
+  legacyHeaders: false,
+  handler: createRateLimitResponse('Too many support tickets. Please try again later.'),
+  skip: () => isTestEnv,
+});

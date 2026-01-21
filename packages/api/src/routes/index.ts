@@ -5,6 +5,7 @@ import authRouter from './auth.js';
 import travelRecordsRouter from './travelRecords.js';
 import reportsRouter from './reports.js';
 import profileRouter from './profile.js';
+import supportRouter from './support.js';
 
 const router = Router();
 
@@ -25,5 +26,8 @@ router.use('/reports', reportsRouter);
 
 // Profile endpoints
 router.use('/profile', profileRouter);
+
+// Support endpoints
+router.use('/support', supportRouter);
 
 export default router;
