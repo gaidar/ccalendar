@@ -113,13 +113,13 @@ Account management features.
 
 | Status | Feature | Spec | Priority | Notes |
 |--------|---------|------|----------|-------|
-| `[ ]` | View profile | `[ ]` | P1 | Name, email, stats |
-| `[ ]` | Update profile | `[ ]` | P1 | Name, email change |
-| `[ ]` | Change password | `[ ]` | P1 | With/without current password |
-| `[ ]` | Delete account | `[ ]` | P1 | Confirmation required ("DELETE") |
-| `[ ]` | View connected OAuth providers | `[ ]` | P2 | List with disconnect option |
-| `[ ]` | Disconnect OAuth provider | `[ ]` | P2 | With fallback validation |
-| `[ ]` | Connect additional OAuth | `[ ]` | P2 | Add Google/Facebook/Apple |
+| `[X]` | View profile | `[X]` | P1 | Name, email, stats |
+| `[X]` | Update profile | `[X]` | P1 | Name, email change |
+| `[X]` | Change password | `[X]` | P1 | With/without current password |
+| `[X]` | Delete account | `[X]` | P1 | Confirmation required ("DELETE") |
+| `[X]` | View connected OAuth providers | `[X]` | P2 | List with disconnect option |
+| `[X]` | Disconnect OAuth provider | `[X]` | P2 | With fallback validation |
+| `[X]` | Connect additional OAuth | `[X]` | P2 | Add Google/Facebook/Apple |
 
 ## Phase 8: Support System
 
