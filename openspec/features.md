@@ -81,17 +81,17 @@ The core user interface for tracking travels.
 
 | Status | Feature | Spec | Priority | Notes |
 |--------|---------|------|----------|-------|
-| `[ ]` | Month calendar view | `[ ]` | P0 | Grid layout, day cells |
-| `[ ]` | Day cell with country indicators | `[ ]` | P0 | Color dots, overflow (+N) |
-| `[ ]` | Single date country picker | `[ ]` | P0 | Modal/sheet with search |
-| `[ ]` | Date range selection | `[ ]` | P1 | Start/end date highlight |
-| `[ ]` | Bulk update modal | `[ ]` | P1 | Multi-country selection |
-| `[ ]` | Country search (fuzzy) | `[ ]` | P0 | Fuse.js integration |
-| `[ ]` | Recent countries quick-pick | `[ ]` | P2 | Based on user history |
-| `[ ]` | Optimistic UI updates | `[ ]` | P1 | Immediate feedback |
-| `[ ]` | Calendar navigation (prev/next month) | `[ ]` | P0 | Month/year selector |
-| `[ ]` | Today highlight | `[ ]` | P0 | Visual indicator |
-| `[ ]` | Keyboard navigation | `[ ]` | P2 | Arrow keys, Enter/Space |
+| `[X]` | Month calendar view | `[X]` | P0 | Grid layout, day cells |
+| `[X]` | Day cell with country indicators | `[X]` | P0 | Color dots, overflow (+N) |
+| `[X]` | Single date country picker | `[X]` | P0 | Modal/sheet with search |
+| `[X]` | Date range selection | `[X]` | P1 | Start/end date highlight |
+| `[X]` | Bulk update modal | `[X]` | P1 | Multi-country selection |
+| `[X]` | Country search (fuzzy) | `[X]` | P0 | Fuse.js integration |
+| `[X]` | Recent countries quick-pick | `[X]` | P2 | Based on user history |
+| `[~]` | Optimistic UI updates | `[~]` | P1 | Basic loading/invalidation done |
+| `[X]` | Calendar navigation (prev/next month) | `[X]` | P0 | Month/year selector |
+| `[X]` | Today highlight | `[X]` | P0 | Visual indicator |
+| `[~]` | Keyboard navigation | `[~]` | P2 | Enter/Space/Tab done, arrows pending |
 
 ## Phase 6: Reports & Export
 
