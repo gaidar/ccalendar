@@ -157,3 +157,18 @@ The support endpoint SHALL sanitize input data.
 - **THEN** the message SHALL be stored as-is (not rendered as HTML)
 - **AND** line breaks SHALL be preserved
 
+### Requirement: Token Cleanup Scheduling
+The token service SHALL implement scheduled cleanup of expired tokens.
+
+#### Scenario: Scheduled cleanup
+- **WHEN** the API server is running
+- **THEN** the system SHALL run token cleanup once per day
+
+#### Scenario: Cleanup operation
+- **WHEN** cleanup runs
+- **THEN** the system SHALL delete all expired:
+  - Refresh tokens
+  - Email confirmation tokens
+  - Password reset tokens
+- **AND** log the number of tokens deleted
+

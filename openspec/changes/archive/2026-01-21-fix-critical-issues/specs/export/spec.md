@@ -1,6 +1,6 @@
 # Export - Delta Spec
 
-## MODIFIED Requirements
+## ADDED Requirements
 
 ### Requirement: CSV Export Generation
 The export service SHALL generate CSV files using streaming to minimize memory usage.

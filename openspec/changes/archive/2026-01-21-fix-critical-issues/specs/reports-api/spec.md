@@ -1,6 +1,6 @@
 # Reports API - Delta Spec
 
-## MODIFIED Requirements
+## ADDED Requirements
 
 ### Requirement: Summary Report Top Countries
 The summary report endpoint SHALL support limiting the number of top countries returned.

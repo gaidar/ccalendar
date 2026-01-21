@@ -1,6 +1,6 @@
 # Logging - Delta Spec
 
-## MODIFIED Requirements
+## ADDED Requirements
 
 ### Requirement: Consistent Logger Usage
 All application code SHALL use the Winston logger utility instead of direct console methods.

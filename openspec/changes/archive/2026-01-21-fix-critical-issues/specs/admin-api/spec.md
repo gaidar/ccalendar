@@ -1,6 +1,6 @@
 # Admin API - Delta Spec
 
-## MODIFIED Requirements
+## ADDED Requirements
 
 ### Requirement: Admin Stats Query Optimization
 The admin statistics service SHALL use efficient database queries.

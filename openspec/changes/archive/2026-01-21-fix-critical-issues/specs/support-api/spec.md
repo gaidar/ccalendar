@@ -1,6 +1,6 @@
 # Support API - Delta Spec
 
-## MODIFIED Requirements
+## ADDED Requirements
 
 ### Requirement: Support Service Error Types
 The support service SHALL use proper HTTP error types for all error conditions.

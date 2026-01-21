@@ -1,6 +1,6 @@
 # Rate Limiting - Delta Spec
 
-## MODIFIED Requirements
+## ADDED Requirements
 
 ### Requirement: Rate Limiter Key Generation
 The rate limiting middleware SHALL identify authenticated users by their `userId` property from the JWT payload.
