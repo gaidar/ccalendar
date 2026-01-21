@@ -155,13 +155,13 @@ Transactional email functionality.
 
 | Status | Feature | Spec | Priority | Notes |
 |--------|---------|------|----------|-------|
-| `[ ]` | Email service setup | `[ ]` | P0 | Nodemailer + Mailgun |
-| `[ ]` | Email templates (HTML) | `[ ]` | P1 | Consistent branding |
-| `[ ]` | Welcome/confirmation email | `[ ]` | P0 | After registration |
-| `[ ]` | Password reset email | `[ ]` | P1 | Reset link |
-| `[ ]` | Password changed confirmation | `[ ]` | P2 | Security notification |
-| `[ ]` | Account deletion confirmation | `[ ]` | P2 | Final confirmation |
-| `[ ]` | Support ticket confirmation | `[ ]` | P2 | With reference ID |
+| `[X]` | Email service setup | `[X]` | P0 | Nodemailer + Mailgun |
+| `[X]` | Email templates (HTML) | `[X]` | P1 | Consistent branding |
+| `[X]` | Welcome/confirmation email | `[X]` | P0 | After registration |
+| `[X]` | Password reset email | `[X]` | P1 | Reset link |
+| `[X]` | Password changed confirmation | `[X]` | P2 | Security notification |
+| `[X]` | Account deletion confirmation | `[X]` | P2 | Final confirmation |
+| `[X]` | Support ticket confirmation | `[X]` | P2 | With reference ID |
 
 ## Phase 11: Security & Performance
 
