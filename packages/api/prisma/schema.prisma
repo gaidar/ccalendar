@@ -132,6 +132,7 @@ model SupportTicket {
 
   user User? @relation(fields: [userId], references: [id], onDelete: SetNull)
 
+  @@index([status])
   @@map("support_tickets")
 }
 

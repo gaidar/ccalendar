@@ -1,5 +1,6 @@
 import { Router } from 'express';
 import { authenticate } from '../middleware/authenticate.js';
+import { exportRateLimiter } from '../middleware/rateLimit.js';
 import {
   getSummary,
   getStatistics,
@@ -18,6 +19,7 @@ router.get('/summary', getSummary);
 router.get('/statistics', getStatistics);
 
 // GET /reports/export?format=csv|xlsx&start=YYYY-MM-DD&end=YYYY-MM-DD
-router.get('/export', exportRecords);
+// Rate limited to 5 exports per hour per user
+router.get('/export', exportRateLimiter, exportRecords);
 
 export default router;

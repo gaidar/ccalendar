@@ -28,6 +28,10 @@ const envSchema = z.object({
   APPLE_TEAM_ID: z.string().optional(),
   APPLE_KEY_ID: z.string().optional(),
   APPLE_PRIVATE_KEY: z.string().optional(),
+  // Sentry configuration
+  SENTRY_DSN: z.string().url().optional(),
+  SENTRY_ENVIRONMENT: z.string().optional(),
+  APP_VERSION: z.string().optional().default('1.0.0'),
 });
 
 function validateEnv(): z.infer<typeof envSchema> {
@@ -102,6 +106,14 @@ export const config = {
       return env.NODE_ENV === 'production' && (
         this.google.isConfigured || this.facebook.isConfigured || this.apple.isConfigured
       );
+    },
+  },
+  sentry: {
+    dsn: env.SENTRY_DSN,
+    environment: env.SENTRY_ENVIRONMENT || env.NODE_ENV,
+    release: env.APP_VERSION,
+    get isConfigured() {
+      return !!env.SENTRY_DSN;
     },
   },
 } as const;

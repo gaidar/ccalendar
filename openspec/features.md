@@ -169,14 +169,14 @@ Cross-cutting concerns.
 
 | Status | Feature | Spec | Priority | Notes |
 |--------|---------|------|----------|-------|
-| `[ ]` | Helmet.js security headers | `[ ]` | P0 | CSP, HSTS, etc. |
-| `[ ]` | CORS configuration | `[ ]` | P0 | Frontend origin |
-| `[ ]` | Input sanitization | `[ ]` | P0 | All user inputs |
-| `[ ]` | Request logging | `[ ]` | P1 | Winston logger |
-| `[ ]` | Error tracking setup | `[ ]` | P2 | Sentry integration |
-| `[ ]` | Database indexes | `[ ]` | P1 | Performance optimization |
-| `[ ]` | Redis session caching | `[ ]` | P2 | Token blacklist |
-| `[ ]` | Code splitting | `[ ]` | P1 | Per-route lazy loading |
+| `[X]` | Helmet.js security headers | `[X]` | P0 | CSP, HSTS, X-Frame-Options, Referrer-Policy |
+| `[X]` | CORS configuration | `[X]` | P0 | Dynamic origin, credentials, preflight cache |
+| `[X]` | Input sanitization | `[X]` | P0 | Trim, control chars, email normalization |
+| `[X]` | Request logging | `[X]` | P1 | Winston with file transports, sensitive filtering |
+| `[X]` | Error tracking setup | `[X]` | P2 | Sentry (frontend + backend) |
+| `[X]` | Database indexes | `[X]` | P1 | User email, travel records, support tickets |
+| `[X]` | Redis session caching | `[X]` | P2 | Token blacklist, countries cache |
+| `[X]` | Code splitting | `[X]` | P1 | React.lazy for all pages |
 
 ## Phase 12: Testing
 

@@ -1,6 +1,7 @@
 import { Router, type Request, type Response, type NextFunction } from 'express';
 import { passport } from '../config/passport.js';
 import { oauthService } from '../services/oauthService.js';
+import { oauthRateLimiter } from '../middleware/rateLimit.js';
 import {
   getProviders,
   handleOAuthSuccess,
@@ -9,6 +10,9 @@ import {
 } from '../controllers/oauthController.js';
 
 const router = Router();
+
+// Apply rate limiting to OAuth endpoints
+router.use(oauthRateLimiter);
 
 // Get available OAuth providers
 router.get('/providers', getProviders);
