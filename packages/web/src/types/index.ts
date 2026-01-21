@@ -140,3 +140,95 @@ export interface ChangePasswordData {
 }
 
 export type OAuthProvider = 'google' | 'facebook' | 'apple';
+
+// Admin types
+export interface AdminUser {
+  id: string;
+  name: string;
+  email: string;
+  isAdmin: boolean;
+  isConfirmed: boolean;
+  createdAt: string;
+}
+
+export interface AdminUserStats {
+  totalRecords: number;
+  totalCountries: number;
+}
+
+export interface AdminUserWithStats extends AdminUser {
+  stats: AdminUserStats;
+  lastLoginAt: string | null;
+  recordCount: number;
+  ticketCount: number;
+}
+
+export interface Pagination {
+  page: number;
+  limit: number;
+  total: number;
+  pages: number;
+}
+
+export interface AdminUsersResponse {
+  users: AdminUser[];
+  pagination: Pagination;
+}
+
+export interface AdminUserResponse {
+  user: AdminUserWithStats;
+}
+
+export interface UpdateUserData {
+  name?: string;
+  email?: string;
+  isAdmin?: boolean;
+  isConfirmed?: boolean;
+}
+
+export interface AdminTicket {
+  id: string;
+  referenceId: string;
+  name: string;
+  email: string;
+  subject: string;
+  category: string;
+  status: TicketStatus;
+  createdAt: string;
+  userName: string;
+  userId: string | null;
+}
+
+export interface AdminTicketDetail extends AdminTicket {
+  message: string;
+  adminNotes: string | null;
+  userEmail: string;
+  updatedAt: string;
+}
+
+export interface AdminTicketsResponse {
+  tickets: AdminTicket[];
+  pagination: Pagination;
+}
+
+export interface AdminTicketResponse {
+  ticket: AdminTicketDetail;
+}
+
+export interface UpdateTicketData {
+  status?: TicketStatus;
+  adminNotes?: string;
+}
+
+export interface SystemStats {
+  totalUsers: number;
+  totalRecords: number;
+  activeUsers30Days: number;
+  openTickets: number;
+}
+
+export interface SystemStatsResponse {
+  stats: SystemStats;
+}
+
+export type TicketStatus = 'open' | 'in_progress' | 'resolved' | 'closed';

@@ -2,7 +2,7 @@ import { useEffect } from 'react';
 import { Routes, Route } from 'react-router-dom';
 import { Toaster } from '@/components/ui/sonner';
 import { Layout } from '@/components/layout';
-import { ProtectedRoute, PublicRoute } from '@/components/auth';
+import { ProtectedRoute, PublicRoute, AdminRoute } from '@/components/auth';
 import { useAuthStore } from '@/stores/authStore';
 
 // Pages
@@ -19,6 +19,15 @@ import ProfilePage from '@/pages/ProfilePage';
 import SupportPage from '@/pages/SupportPage';
 import SupportConfirmationPage from '@/pages/SupportConfirmationPage';
 import NotFoundPage from '@/pages/NotFoundPage';
+
+// Admin Pages
+import {
+  AdminDashboardPage,
+  AdminUsersPage,
+  AdminUserEditPage,
+  AdminTicketsPage,
+  AdminTicketDetailPage,
+} from '@/pages/admin';
 
 function App() {
   const { initialize, isInitialized } = useAuthStore();
@@ -87,6 +96,50 @@ function App() {
         {/* Support pages (standalone) */}
         <Route path="/support" element={<SupportPage />} />
         <Route path="/support/confirmation/:referenceId" element={<SupportConfirmationPage />} />
+
+        {/* Admin routes with layout */}
+        <Route element={<Layout showFooter={false} />}>
+          <Route
+            path="/admin"
+            element={
+              <AdminRoute>
+                <AdminDashboardPage />
+              </AdminRoute>
+            }
+          />
+          <Route
+            path="/admin/users"
+            element={
+              <AdminRoute>
+                <AdminUsersPage />
+              </AdminRoute>
+            }
+          />
+          <Route
+            path="/admin/users/:id"
+            element={
+              <AdminRoute>
+                <AdminUserEditPage />
+              </AdminRoute>
+            }
+          />
+          <Route
+            path="/admin/tickets"
+            element={
+              <AdminRoute>
+                <AdminTicketsPage />
+              </AdminRoute>
+            }
+          />
+          <Route
+            path="/admin/tickets/:referenceId"
+            element={
+              <AdminRoute>
+                <AdminTicketDetailPage />
+              </AdminRoute>
+            }
+          />
+        </Route>
 
         {/* 404 */}
         <Route path="*" element={<NotFoundPage />} />

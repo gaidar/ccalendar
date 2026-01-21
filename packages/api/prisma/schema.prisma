@@ -134,3 +134,17 @@ model SupportTicket {
 
   @@map("support_tickets")
 }
+
+model AuditLog {
+  id         String   @id @default(uuid())
+  adminId    String   @map("admin_id")
+  action     String   @db.VarChar(50)
+  targetType String   @db.VarChar(50) @map("target_type")
+  targetId   String   @db.VarChar(100) @map("target_id")
+  details    Json?
+  createdAt  DateTime @default(now()) @map("created_at")
+
+  @@index([adminId, createdAt])
+  @@index([targetType, targetId])
+  @@map("audit_logs")
+}

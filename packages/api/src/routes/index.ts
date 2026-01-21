@@ -6,6 +6,7 @@ import travelRecordsRouter from './travelRecords.js';
 import reportsRouter from './reports.js';
 import profileRouter from './profile.js';
 import supportRouter from './support.js';
+import adminRouter from './admin.js';
 
 const router = Router();
 
@@ -29,5 +30,8 @@ router.use('/profile', profileRouter);
 
 // Support endpoints
 router.use('/support', supportRouter);
+
+// Admin endpoints
+router.use('/admin', adminRouter);
 
 export default router;

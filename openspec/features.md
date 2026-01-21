@@ -138,16 +138,16 @@ Administrative functionality.
 
 | Status | Feature | Spec | Priority | Notes |
 |--------|---------|------|----------|-------|
-| `[ ]` | Admin middleware | `[ ]` | P1 | isAdmin check |
-| `[ ]` | List users (paginated) | `[ ]` | P1 | Search, pagination |
-| `[ ]` | View user details | `[ ]` | P1 | Stats, records count |
-| `[ ]` | Update user | `[ ]` | P1 | Name, email, isAdmin, isConfirmed |
-| `[ ]` | Delete user | `[ ]` | P2 | With protections |
-| `[ ]` | System statistics | `[ ]` | P1 | Total users, records, active |
-| `[ ]` | List support tickets | `[ ]` | P1 | Filter by status |
-| `[ ]` | Update ticket status | `[ ]` | P1 | Status + admin notes |
-| `[ ]` | Delete ticket | `[ ]` | P2 | Admin only |
-| `[ ]` | Admin UI pages | `[ ]` | P1 | Users, tickets, stats |
+| `[X]` | Admin middleware | `[X]` | P1 | isAdmin check |
+| `[X]` | List users (paginated) | `[X]` | P1 | Search, pagination |
+| `[X]` | View user details | `[X]` | P1 | Stats, records count |
+| `[X]` | Update user | `[X]` | P1 | Name, email, isAdmin, isConfirmed |
+| `[X]` | Delete user | `[X]` | P2 | With protections |
+| `[X]` | System statistics | `[X]` | P1 | Total users, records, active |
+| `[X]` | List support tickets | `[X]` | P1 | Filter by status |
+| `[X]` | Update ticket status | `[X]` | P1 | Status + admin notes |
+| `[X]` | Delete ticket | `[X]` | P2 | Admin only |
+| `[X]` | Admin UI pages | `[X]` | P1 | Users, tickets, stats |
 
 ## Phase 10: Email System
 
@@ -189,7 +189,7 @@ Test coverage requirements.
 | `[X]` | Travel records unit tests | `[X]` | P1 | CRUD operations |
 | `[X]` | Auth integration tests | `[X]` | P1 | Full flows |
 | `[X]` | Travel records integration tests | `[X]` | P1 | With auth |
-| `[ ]` | Admin integration tests | `[ ]` | P2 | Admin flows |
+| `[X]` | Admin integration tests | `[X]` | P2 | Admin flows |
 | `[X]` | Frontend component tests | `[X]` | P2 | Vitest + Testing Library |
 | `[ ]` | E2E tests setup | `[ ]` | P2 | Playwright |
 | `[ ]` | Critical journey E2E tests | `[ ]` | P2 | Registration, add record |

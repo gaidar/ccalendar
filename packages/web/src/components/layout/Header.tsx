@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { Link, NavLink, useNavigate } from 'react-router-dom';
-import { Globe, Menu, LogOut, User, Calendar, BarChart3 } from 'lucide-react';
+import { Globe, Menu, LogOut, User, Calendar, BarChart3, Shield } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import {
   Sheet,
@@ -60,6 +60,20 @@ export function Header() {
                   {link.label}
                 </NavLink>
               ))}
+              {user?.isAdmin && (
+                <NavLink
+                  to="/admin"
+                  className={({ isActive }) =>
+                    cn(
+                      'flex items-center gap-1.5 text-sm font-medium transition-colors hover:text-primary',
+                      isActive ? 'text-primary' : 'text-muted-foreground'
+                    )
+                  }
+                >
+                  <Shield className="h-4 w-4" />
+                  Admin
+                </NavLink>
+              )}
             </>
           )}
         </div>
@@ -164,6 +178,24 @@ export function Header() {
                     <User className="h-5 w-5" />
                     Profile
                   </NavLink>
+
+                  {user?.isAdmin && (
+                    <NavLink
+                      to="/admin"
+                      onClick={() => setMobileMenuOpen(false)}
+                      className={({ isActive }) =>
+                        cn(
+                          'flex items-center gap-3 rounded-lg px-3 py-3 text-base font-medium transition-colors',
+                          isActive
+                            ? 'bg-primary/10 text-primary'
+                            : 'text-muted-foreground hover:bg-muted hover:text-foreground'
+                        )
+                      }
+                    >
+                      <Shield className="h-5 w-5" />
+                      Admin
+                    </NavLink>
+                  )}
 
                   <div className="my-2 border-t" />
 
