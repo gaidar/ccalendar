@@ -127,10 +127,10 @@ Help and support features.
 
 | Status | Feature | Spec | Priority | Notes |
 |--------|---------|------|----------|-------|
-| `[ ]` | Create support ticket | `[ ]` | P1 | Public endpoint |
-| `[ ]` | Support form UI | `[ ]` | P1 | Name, email, category, message |
-| `[ ]` | Ticket confirmation page | `[ ]` | P1 | Reference ID display |
-| `[ ]` | Ticket email notifications | `[ ]` | P2 | User + admin alerts |
+| `[X]` | Create support ticket | `[X]` | P1 | Public endpoint |
+| `[X]` | Support form UI | `[X]` | P1 | Name, email, category, message |
+| `[X]` | Ticket confirmation page | `[X]` | P1 | Reference ID display |
+| `[ ]` | Ticket email notifications | `[ ]` | P2 | Deferred to Phase 10 |
 
 ## Phase 9: Admin Panel
 
