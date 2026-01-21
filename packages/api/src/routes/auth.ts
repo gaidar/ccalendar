@@ -20,8 +20,12 @@ import {
   refreshRateLimiter,
   resendConfirmationRateLimiter,
 } from '../middleware/rateLimit.js';
+import oauthRouter from './oauth.js';
 
 const router = Router();
+
+// OAuth routes (providers, google, facebook, apple)
+router.use('/', oauthRouter);
 
 // Public routes
 router.post('/register', registerRateLimiter, register);

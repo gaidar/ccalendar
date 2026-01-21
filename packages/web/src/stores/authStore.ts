@@ -15,6 +15,7 @@ interface AuthState {
   isLoading: boolean;
   setUser: (user: User | null) => void;
   setLoading: (loading: boolean) => void;
+  setToken: (token: string) => void;
   logout: () => void;
 }
 
@@ -31,6 +32,10 @@ export const useAuthStore = create<AuthState>()(
           isLoading: false,
         }),
       setLoading: isLoading => set({ isLoading }),
+      setToken: token => {
+        localStorage.setItem('accessToken', token);
+        // Note: User data should be fetched separately after setting token
+      },
       logout: () => {
         localStorage.removeItem('accessToken');
         set({

@@ -7,6 +7,7 @@ import { logger } from './utils/logger.js';
 import { connectDatabase, disconnectDatabase } from './utils/prisma.js';
 import { errorHandler, notFoundHandler } from './middleware/errorHandler.js';
 import { requestLogger } from './middleware/requestLogger.js';
+import { passport, configurePassport } from './config/passport.js';
 import routes from './routes/index.js';
 
 const app = express();
@@ -26,6 +27,10 @@ app.use(
 
 // Cookie parser for refresh tokens
 app.use(cookieParser());
+
+// Initialize Passport for OAuth
+configurePassport();
+app.use(passport.initialize());
 
 // Body parsing middleware
 app.use(express.json({ limit: '10mb' }));

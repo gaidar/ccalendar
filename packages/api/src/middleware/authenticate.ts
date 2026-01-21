@@ -1,14 +1,28 @@
-import { Request, Response, NextFunction } from 'express';
+import type { Request, Response, NextFunction } from 'express';
 import { tokenService, AccessTokenPayload } from '../services/tokenService.js';
 import { UnauthorizedError, ForbiddenError } from './errorHandler.js';
 
-// Extend Express Request type to include user
+// Extend Express Request type to include our custom user type
+// Note: Passport sets req.user to LoginResult in OAuth flows,
+// while our JWT middleware sets it to AccessTokenPayload
 declare global {
+  // eslint-disable-next-line @typescript-eslint/no-namespace
   namespace Express {
-    interface Request {
-      user?: AccessTokenPayload;
-    }
+    // Empty interface extends AccessTokenPayload for passport compatibility
+    // eslint-disable-next-line @typescript-eslint/no-empty-interface
+    interface User extends AccessTokenPayload {}
   }
+}
+
+// Helper type guard to check if user is AccessTokenPayload (from JWT)
+export function isJwtUser(user: unknown): user is AccessTokenPayload {
+  return (
+    user !== null &&
+    typeof user === 'object' &&
+    'userId' in user &&
+    'email' in user &&
+    typeof (user as AccessTokenPayload).userId === 'string'
+  );
 }
 
 /**

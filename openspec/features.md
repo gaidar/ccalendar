@@ -40,9 +40,9 @@ Core authentication required for all protected features.
 | `[X]` | Logout (single session) | `[X]` | P1 | Invalidate current refresh token |
 | `[X]` | Password reset flow | `[X]` | P1 | Email request, token (1hr), reset |
 | `[X]` | Account lockout (brute force) | `[X]` | P1 | 5 attempts, 15min lockout |
-| `[ ]` | Google OAuth | `[ ]` | P1 | Passport.js, account linking |
-| `[ ]` | Facebook OAuth | `[ ]` | P2 | Passport.js, account linking |
-| `[ ]` | Apple Sign In | `[ ]` | P2 | POST callback, account linking |
+| `[X]` | Google OAuth | `[X]` | P1 | Passport.js, account linking |
+| `[X]` | Facebook OAuth | `[X]` | P2 | Passport.js, account linking |
+| `[X]` | Apple Sign In | `[X]` | P2 | POST callback, account linking |
 | `[X]` | Logout all devices | `[X]` | P2 | Invalidate all refresh tokens |
 | `[X]` | Rate limiting | `[X]` | P1 | express-rate-limit, per-endpoint |
 

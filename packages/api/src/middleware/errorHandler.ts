@@ -50,6 +50,13 @@ export class ForbiddenError extends HttpError {
   }
 }
 
+export class ConflictError extends HttpError {
+  constructor(message: string, details?: unknown[]) {
+    super(409, 'DUPLICATE_RECORD', message, details);
+    this.name = 'ConflictError';
+  }
+}
+
 export function errorHandler(
   err: AppError,
   _req: Request,

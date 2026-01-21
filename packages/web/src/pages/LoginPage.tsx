@@ -4,6 +4,7 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
+import { OAuthButtons } from '@/components/features/OAuthButtons';
 
 export default function LoginPage() {
   return (
@@ -39,6 +40,7 @@ export default function LoginPage() {
               Sign In
             </Button>
           </form>
+          <OAuthButtons />
           <div className="mt-6 text-center text-sm text-muted-foreground">
             Do not have an account?{' '}
             <Link to="/register" className="text-primary hover:underline">

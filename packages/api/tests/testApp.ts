@@ -2,6 +2,7 @@ import express from 'express';
 import cors from 'cors';
 import cookieParser from 'cookie-parser';
 import { errorHandler, notFoundHandler } from '../src/middleware/errorHandler.js';
+import { passport, configurePassport } from '../src/config/passport.js';
 import routes from '../src/routes/index.js';
 
 export function createTestApp() {
@@ -15,6 +16,10 @@ export function createTestApp() {
 
   // Trust proxy for IP extraction in tests
   app.set('trust proxy', true);
+
+  // Initialize Passport for OAuth
+  configurePassport();
+  app.use(passport.initialize());
 
   // Routes
   app.use('/api/v1', routes);

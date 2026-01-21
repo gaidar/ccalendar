@@ -5,8 +5,8 @@ import { Request, Response } from 'express';
 const isTestEnv = process.env.NODE_ENV === 'test';
 
 // Helper to create consistent rate limit response
-function createRateLimitResponse(message: string) {
-  return (_req: Request, res: Response) => {
+function createRateLimitResponse(message: string): (_req: Request, res: Response) => void {
+  return (_req: Request, res: Response): void => {
     res.status(429).json({
       error: 'TOO_MANY_REQUESTS',
       message,
