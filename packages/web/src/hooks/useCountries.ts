@@ -23,6 +23,12 @@ export function useCountries() {
   });
 }
 
+/**
+ * Hook for fuzzy country search.
+ * Uses Fuse.js for fuzzy matching (handles typos, partial matches).
+ * Note: For ~200 countries, a simple filter() would be faster but loses
+ * fuzzy matching capability which improves UX. Keep Fuse.js for better search quality.
+ */
 export function useCountrySearch(countries: Country[] | undefined) {
   const [searchTerm, setSearchTerm] = useState('');
 
@@ -30,7 +36,7 @@ export function useCountrySearch(countries: Country[] | undefined) {
     if (!countries) return null;
     return new Fuse(countries, {
       keys: ['name', 'code'],
-      threshold: 0.3,
+      threshold: 0.3, // Allows fuzzy matching for typos
       includeScore: true,
     });
   }, [countries]);

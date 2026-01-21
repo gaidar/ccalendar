@@ -17,8 +17,14 @@ export interface RateLimitInfo {
  * In-memory rate limiter for export endpoints.
  * Uses a per-user counter that resets after the window expires.
  *
- * Note: In production with multiple instances, this should be replaced
- * with Redis-based rate limiting for consistency across instances.
+ * Note: This is a fallback when Redis is unavailable. In production with
+ * multiple instances, Redis-based rate limiting (redisExportRateLimiter.ts)
+ * is preferred for consistency across instances.
+ *
+ * Memory characteristics:
+ * - One entry per user with active rate limit (~100 bytes per entry)
+ * - Entries auto-expire after EXPORT_RATE_LIMIT_WINDOW_MS (1 hour)
+ * - Periodic cleanup runs every minute to remove expired entries
  */
 class ExportRateLimiter {
   private entries: Map<string, RateLimitEntry> = new Map();
@@ -138,10 +144,11 @@ class ExportRateLimiter {
 
 export const exportRateLimiter = new ExportRateLimiter();
 
-// Cleanup expired entries every 10 minutes
+// Cleanup expired entries every minute for better memory efficiency
+// This is low overhead since it only iterates over entries with active rate limits
 setInterval(
   () => {
     exportRateLimiter.cleanup();
   },
-  10 * 60 * 1000
+  60 * 1000
 );

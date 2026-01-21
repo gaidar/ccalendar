@@ -45,12 +45,28 @@ function formatDate(date: Date): string {
   return `${year}-${month}-${day}`;
 }
 
+/** Regex pattern for YYYY-MM-DD format */
+const DATE_FORMAT_REGEX = /^\d{4}-\d{2}-\d{2}$/;
+
 /**
  * Parses a YYYY-MM-DD string as a local date (not UTC)
+ * @throws Error if the date format is invalid
  */
 function parseLocalDate(dateStr: string): Date {
+  if (!DATE_FORMAT_REGEX.test(dateStr)) {
+    throw new Error(`Invalid date format: "${dateStr}". Expected YYYY-MM-DD`);
+  }
   const [year, month, day] = dateStr.split('-').map(Number);
-  return new Date(year, month - 1, day);
+  // Validate that the parsed values form a valid date
+  const date = new Date(year, month - 1, day);
+  if (
+    date.getFullYear() !== year ||
+    date.getMonth() !== month - 1 ||
+    date.getDate() !== day
+  ) {
+    throw new Error(`Invalid date: "${dateStr}"`);
+  }
+  return date;
 }
 
 /**
@@ -96,9 +112,13 @@ class ReportsService {
       endDate = getEndDate();
     } else {
       // Custom date range - parse as local dates
+      // end is required when using custom date range (validated by caller)
+      if (!end) {
+        throw new Error('End date is required for custom date range');
+      }
       startDate = parseLocalDate(daysOrStart);
       startDate.setHours(0, 0, 0, 0);
-      endDate = parseLocalDate(end!);
+      endDate = parseLocalDate(end);
       endDate.setHours(23, 59, 59, 999);
     }
 

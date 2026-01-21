@@ -35,7 +35,7 @@ export function useSummary(params: ReportsQueryParams) {
   const queryString = buildQueryString(params);
 
   return useQuery({
-    queryKey: ['reports', 'summary', params],
+    queryKey: ['reports', 'summary', params.days, params.start, params.end],
     queryFn: () => api.get<SummaryResponse>(`/reports/summary?${queryString}`),
     staleTime: 60 * 1000, // 1 minute
     enabled: params.days !== undefined || (!!params.start && !!params.end),
@@ -49,7 +49,7 @@ export function useCountryStatistics(params: ReportsQueryParams) {
   const queryString = buildQueryString(params);
 
   return useQuery({
-    queryKey: ['reports', 'statistics', params],
+    queryKey: ['reports', 'statistics', params.days, params.start, params.end],
     queryFn: () =>
       api.get<CountryStatisticsResponse>(`/reports/statistics?${queryString}`),
     staleTime: 60 * 1000, // 1 minute

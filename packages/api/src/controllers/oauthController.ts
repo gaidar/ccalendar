@@ -6,6 +6,28 @@ import { HttpError } from '../middleware/errorHandler.js';
 import { logger } from '../utils/logger.js';
 import type { LoginResult } from '../services/authService.js';
 
+/**
+ * Type guard to validate LoginResult shape from OAuth callback
+ */
+function isLoginResult(value: unknown): value is LoginResult {
+  if (!value || typeof value !== 'object') return false;
+  const obj = value as Record<string, unknown>;
+
+  // Check user object
+  if (!obj.user || typeof obj.user !== 'object') return false;
+  const user = obj.user as Record<string, unknown>;
+  if (typeof user.id !== 'string') return false;
+  if (typeof user.email !== 'string') return false;
+
+  // Check tokens object
+  if (!obj.tokens || typeof obj.tokens !== 'object') return false;
+  const tokens = obj.tokens as Record<string, unknown>;
+  if (typeof tokens.accessToken !== 'string') return false;
+  if (typeof tokens.refreshToken !== 'string') return false;
+
+  return true;
+}
+
 const REFRESH_TOKEN_COOKIE_OPTIONS = {
   httpOnly: true,
   secure: config.env === 'production',
@@ -33,12 +55,14 @@ export function handleOAuthSuccess(
   _next: NextFunction
 ): void {
   // OAuth callback stores LoginResult in req.user via passport
-  const result = req.user as unknown as LoginResult;
-
-  if (!result) {
+  // Validate the shape before using it
+  if (!isLoginResult(req.user)) {
+    logger.error('OAuth callback received invalid LoginResult shape', { user: req.user });
     res.redirect(`${config.frontend.url}/login?error=oauth_failed`);
     return;
   }
+
+  const result = req.user;
 
   // Set refresh token in httpOnly cookie
   res.cookie('refreshToken', result.tokens.refreshToken, REFRESH_TOKEN_COOKIE_OPTIONS);
