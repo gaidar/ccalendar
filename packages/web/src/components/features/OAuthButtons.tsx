@@ -8,7 +8,9 @@ interface ProvidersResponse {
   providers: OAuthProvider[];
 }
 
-const API_BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:3001/api/v1';
+// In production, use relative path (same origin). In development, use localhost.
+const API_BASE_URL = import.meta.env.VITE_API_URL ||
+  (import.meta.env.PROD ? '/api/v1' : 'http://localhost:3001/api/v1');
 
 // Provider configurations with official brand colors
 const providerConfig: Record<OAuthProvider, { name: string; bgColor: string; textColor: string; hoverColor: string; icon: ReactNode }> = {

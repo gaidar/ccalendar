@@ -1,0 +1,108 @@
+{
+  "name": "Country Calendar",
+  "description": "Track your travels across the globe with an intuitive calendar interface",
+  "repository": "https://github.com/your-username/ccalendar",
+  "logo": "https://countrycalendar.app/logo.png",
+  "keywords": ["travel", "calendar", "tracking", "nodejs", "react"],
+  "stack": "heroku-22",
+  "buildpacks": [
+    {
+      "url": "heroku/nodejs"
+    }
+  ],
+  "formation": {
+    "web": {
+      "quantity": 1,
+      "size": "basic"
+    }
+  },
+  "addons": [
+    {
+      "plan": "heroku-postgresql:essential-0"
+    },
+    {
+      "plan": "heroku-redis:mini"
+    }
+  ],
+  "env": {
+    "NODE_ENV": {
+      "value": "production"
+    },
+    "JWT_SECRET": {
+      "generator": "secret"
+    },
+    "FRONTEND_URL": {
+      "description": "The URL of the frontend application",
+      "value": "https://countrycalendar.app"
+    },
+    "FROM_EMAIL": {
+      "description": "Email address for sending transactional emails",
+      "value": "noreply@countrycalendar.app"
+    },
+    "REPLY_TO_EMAIL": {
+      "description": "Reply-to email address",
+      "value": "support@countrycalendar.app"
+    },
+    "MAILGUN_API_KEY": {
+      "description": "Mailgun API key for sending emails",
+      "required": false
+    },
+    "MAILGUN_DOMAIN": {
+      "description": "Mailgun domain for sending emails",
+      "required": false
+    },
+    "GOOGLE_CLIENT_ID": {
+      "description": "Google OAuth client ID",
+      "required": false
+    },
+    "GOOGLE_CLIENT_SECRET": {
+      "description": "Google OAuth client secret",
+      "required": false
+    },
+    "FACEBOOK_APP_ID": {
+      "description": "Facebook OAuth app ID",
+      "required": false
+    },
+    "FACEBOOK_APP_SECRET": {
+      "description": "Facebook OAuth app secret",
+      "required": false
+    },
+    "APPLE_CLIENT_ID": {
+      "description": "Apple Sign-In client ID",
+      "required": false
+    },
+    "APPLE_TEAM_ID": {
+      "description": "Apple Sign-In team ID",
+      "required": false
+    },
+    "APPLE_KEY_ID": {
+      "description": "Apple Sign-In key ID",
+      "required": false
+    },
+    "APPLE_PRIVATE_KEY": {
+      "description": "Apple Sign-In private key (base64 encoded)",
+      "required": false
+    },
+    "SENTRY_DSN": {
+      "description": "Sentry DSN for error tracking",
+      "required": false
+    },
+    "APP_VERSION": {
+      "description": "Application version for release tracking",
+      "value": "1.0.0"
+    }
+  },
+  "scripts": {
+    "postdeploy": "npm run db:seed --workspace=@ccalendar/api || true"
+  },
+  "environments": {
+    "test": {
+      "addons": [
+        "heroku-postgresql:essential-0"
+      ],
+      "scripts": {
+        "test": "npm test"
+      }
+    }
+  }
+}

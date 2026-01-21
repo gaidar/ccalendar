@@ -200,12 +200,12 @@ Production deployment setup.
 
 | Status | Feature | Spec | Priority | Notes |
 |--------|---------|------|----------|-------|
-| `[ ]` | Heroku configuration | `[ ]` | P1 | Procfile, app.json |
-| `[ ]` | Production environment variables | `[ ]` | P1 | Secrets management |
-| `[ ]` | GitHub Actions CI | `[ ]` | P1 | Test on PR |
-| `[ ]` | GitHub Actions CD | `[ ]` | P2 | Auto-deploy to Heroku |
-| `[ ]` | Database migration script | `[ ]` | P1 | Production migrations |
-| `[ ]` | Frontend build & static serving | `[ ]` | P1 | Vite build, Express static |
+| `[X]` | Heroku configuration | `[X]` | P1 | Procfile, app.json, release phase |
+| `[X]` | Production environment variables | `[X]` | P1 | Documented in DEPLOYMENT.md |
+| `[X]` | GitHub Actions CI | `[X]` | P1 | Test on PR with Postgres |
+| `[X]` | GitHub Actions CD | `[X]` | P2 | Auto-deploy with health check |
+| `[X]` | Database migration script | `[X]` | P1 | prisma migrate deploy |
+| `[X]` | Frontend build & static serving | `[X]` | P1 | Vite build, compression, SPA fallback |
 
 ## Future Features (Post-MVP)
 

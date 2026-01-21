@@ -1,0 +1,89 @@
+name: Deploy
+
+on:
+  push:
+    branches: [main]
+
+jobs:
+  test:
+    name: Test
+    runs-on: ubuntu-latest
+
+    services:
+      postgres:
+        image: postgres:15
+        env:
+          POSTGRES_USER: postgres
+          POSTGRES_PASSWORD: postgres
+          POSTGRES_DB: ccalendar_test
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd pg_isready
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+
+    env:
+      DATABASE_URL: postgresql://postgres:postgres@localhost:5432/ccalendar_test
+      JWT_SECRET: test-secret-key-that-is-at-least-32-characters-long
+      NODE_ENV: test
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: 'npm'
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Generate Prisma client
+        run: npm run db:generate
+
+      - name: Run database migrations
+        run: npm run db:migrate:deploy --workspace=@ccalendar/api
+
+      - name: Seed database
+        run: npm run db:seed --workspace=@ccalendar/api
+
+      - name: Type check
+        run: npx tsc --noEmit --project packages/api/tsconfig.json && npx tsc --noEmit --project packages/web/tsconfig.json
+
+      - name: Lint
+        run: npm run lint
+
+      - name: Run API tests
+        run: npm run test --workspace=@ccalendar/api
+
+      - name: Run Web tests
+        run: npm run test --workspace=@ccalendar/web
+
+      - name: Build
+        run: npm run build
+
+  deploy:
+    name: Deploy to Heroku
+    runs-on: ubuntu-latest
+    needs: test
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Deploy to Heroku
+        uses: akhileshns/heroku-deploy@v3.13.15
+        with:
+          heroku_api_key: ${{ secrets.HEROKU_API_KEY }}
+          heroku_email: ${{ secrets.HEROKU_EMAIL }}
+          heroku_app_name: ${{ secrets.HEROKU_APP_NAME }}
+
+      - name: Health check
+        run: |
+          sleep 30
+          curl -f https://${{ secrets.HEROKU_APP_NAME }}.herokuapp.com/api/v1/health || exit 1
+        continue-on-error: true

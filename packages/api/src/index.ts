@@ -2,6 +2,9 @@ import express from 'express';
 import cors from 'cors';
 import helmet from 'helmet';
 import cookieParser from 'cookie-parser';
+import compression from 'compression';
+import path from 'path';
+import { fileURLToPath } from 'url';
 import { config } from './config/index.js';
 import { logger } from './utils/logger.js';
 import { connectDatabase, disconnectDatabase } from './utils/prisma.js';
@@ -13,6 +16,9 @@ import { passport, configurePassport } from './config/passport.js';
 import { initSentry, Sentry } from './utils/sentry.js';
 import { disconnectRedis, getRedisClient } from './utils/redis.js';
 import routes from './routes/index.js';
+
+const __dirname = path.dirname(fileURLToPath(import.meta.url));
+const isProduction = config.env === 'production';
 
 // Initialize Sentry before creating the app
 initSentry();
@@ -73,6 +79,14 @@ app.use(
 // Cookie parser for refresh tokens
 app.use(cookieParser());
 
+// Compression for all responses
+app.use(compression());
+
+// Trust proxy for Heroku (required for rate limiting and secure cookies)
+if (isProduction) {
+  app.set('trust proxy', 1);
+}
+
 // Initialize Passport for OAuth
 configurePassport();
 app.use(passport.initialize());
@@ -93,7 +107,33 @@ app.use('/api/v1', globalRateLimiter);
 // API routes
 app.use('/api/v1', routes);
 
-// 404 handler
+// Static file serving for production frontend
+if (isProduction) {
+  const publicPath = path.join(__dirname, '../public');
+
+  // Serve static files with caching headers
+  app.use(express.static(publicPath, {
+    maxAge: '1y', // Cache hashed assets for 1 year
+    etag: true,
+    setHeaders: (res, filePath) => {
+      // Don't cache index.html (it's the SPA entry point)
+      if (filePath.endsWith('index.html')) {
+        res.setHeader('Cache-Control', 'no-cache, no-store, must-revalidate');
+      }
+    },
+  }));
+
+  // SPA fallback - serve index.html for any non-API routes
+  app.get('*', (req, res, next) => {
+    // Skip API routes and let them fall through to 404 handler
+    if (req.path.startsWith('/api/')) {
+      return next();
+    }
+    res.sendFile(path.join(publicPath, 'index.html'));
+  });
+}
+
+// 404 handler (for API routes)
 app.use(notFoundHandler);
 
 // Sentry error handler (must be before our error handler)
