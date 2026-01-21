@@ -190,7 +190,7 @@ Test coverage requirements.
 | `[X]` | Auth integration tests | `[X]` | P1 | Full flows |
 | `[X]` | Travel records integration tests | `[X]` | P1 | With auth |
 | `[ ]` | Admin integration tests | `[ ]` | P2 | Admin flows |
-| `[ ]` | Frontend component tests | `[ ]` | P2 | Testing Library |
+| `[X]` | Frontend component tests | `[X]` | P2 | Vitest + Testing Library |
 | `[ ]` | E2E tests setup | `[ ]` | P2 | Playwright |
 | `[ ]` | Critical journey E2E tests | `[ ]` | P2 | Registration, add record |
 
