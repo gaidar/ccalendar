@@ -52,12 +52,12 @@ The main functionality of the application.
 
 | Status | Feature | Spec | Priority | Notes |
 |--------|---------|------|----------|-------|
-| `[ ]` | Create travel record | `[ ]` | P0 | Single date + country |
-| `[ ]` | Delete travel record | `[ ]` | P0 | Own records only |
-| `[ ]` | Get records by date range | `[ ]` | P0 | Query with start/end dates |
-| `[ ]` | Bulk update records | `[ ]` | P1 | Date range + multiple countries |
-| `[ ]` | Countries list endpoint | `[ ]` | P0 | With colors, cached |
-| `[ ]` | Validation rules | `[ ]` | P0 | No future dates, valid country codes |
+| `[X]` | Create travel record | `[X]` | P0 | Single date + country |
+| `[X]` | Delete travel record | `[X]` | P0 | Own records only |
+| `[X]` | Get records by date range | `[X]` | P0 | Query with start/end dates |
+| `[X]` | Bulk update records | `[X]` | P1 | Date range + multiple countries |
+| `[X]` | Countries list endpoint | `[X]` | P0 | With colors, cached |
+| `[X]` | Validation rules | `[X]` | P0 | No future dates, valid country codes |
 
 ## Phase 4: Frontend - Landing & Auth UI
 
@@ -186,9 +186,9 @@ Test coverage requirements.
 |--------|---------|------|----------|-------|
 | `[X]` | Test infrastructure setup | `[X]` | P0 | Vitest, test DB |
 | `[X]` | Auth unit tests | `[X]` | P1 | Registration, login, tokens |
-| `[ ]` | Travel records unit tests | `[ ]` | P1 | CRUD operations |
+| `[X]` | Travel records unit tests | `[X]` | P1 | CRUD operations |
 | `[X]` | Auth integration tests | `[X]` | P1 | Full flows |
-| `[ ]` | Travel records integration tests | `[ ]` | P1 | With auth |
+| `[X]` | Travel records integration tests | `[X]` | P1 | With auth |
 | `[ ]` | Admin integration tests | `[ ]` | P2 | Admin flows |
 | `[ ]` | Frontend component tests | `[ ]` | P2 | Testing Library |
 | `[ ]` | E2E tests setup | `[ ]` | P2 | Playwright |
