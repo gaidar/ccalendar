@@ -46,6 +46,14 @@ vi.mock('../../src/config/index.js', () => ({
         );
       },
     },
+    email: {
+      mailgunApiKey: undefined,
+      mailgunDomain: undefined,
+      from: 'noreply@countrycalendar.app',
+      replyTo: 'support@countrycalendar.app',
+      adminEmail: undefined,
+      isConfigured: false,
+    },
   },
 }));
 

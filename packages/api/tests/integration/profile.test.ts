@@ -16,6 +16,7 @@ vi.mock('../../src/utils/prisma.js', () => ({
     travelRecord: {
       groupBy: vi.fn(),
       deleteMany: vi.fn(),
+      count: vi.fn(),
     },
     oAuth: {
       findMany: vi.fn(),
@@ -398,6 +399,7 @@ describe('Profile Integration Tests', () => {
       };
 
       vi.mocked(prisma.user.findUnique).mockResolvedValue(mockUser);
+      vi.mocked(prisma.travelRecord.count).mockResolvedValue(5);
       vi.mocked(prisma.$transaction).mockResolvedValue([]);
 
       const response = await request(app)

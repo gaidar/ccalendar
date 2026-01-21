@@ -6,6 +6,8 @@ import {
   deleteAccountSchema,
   oauthProviderSchema,
 } from '../validators/profile.js';
+import { emailService } from '../services/email/index.js';
+import { prisma } from '../utils/prisma.js';
 
 export async function getProfile(
   req: Request,
@@ -73,12 +75,37 @@ export async function changePassword(
       return;
     }
 
+    // Get user info before password change (for email notification)
+    const user = await prisma.user.findUnique({
+      where: { id: req.user.userId },
+      select: { name: true, email: true },
+    });
+
     const input = changePasswordSchema.parse(req.body);
 
     await profileService.changePassword(req.user.userId, {
       currentPassword: input.currentPassword,
       newPassword: input.newPassword,
     });
+
+    // Send password changed notification email
+    if (user) {
+      const dateTime = new Date().toLocaleString('en-US', {
+        weekday: 'long',
+        year: 'numeric',
+        month: 'long',
+        day: 'numeric',
+        hour: '2-digit',
+        minute: '2-digit',
+        timeZoneName: 'short',
+      });
+
+      emailService.sendPasswordChangedEmailAsync({
+        name: user.name,
+        email: user.email,
+        dateTime,
+      });
+    }
 
     res.json({
       message: 'Password changed successfully',
@@ -103,9 +130,28 @@ export async function deleteAccount(
       return;
     }
 
+    // Get user info and record count before deletion (for email notification)
+    const user = await prisma.user.findUnique({
+      where: { id: req.user.userId },
+      select: { name: true, email: true },
+    });
+
+    const recordCount = await prisma.travelRecord.count({
+      where: { userId: req.user.userId },
+    });
+
     const input = deleteAccountSchema.parse(req.body);
 
     await profileService.deleteAccount(req.user.userId, input.confirmation);
+
+    // Send account deletion confirmation email
+    if (user) {
+      emailService.sendAccountDeletionEmailAsync({
+        name: user.name,
+        email: user.email,
+        recordCount,
+      });
+    }
 
     res.json({
       message: 'Account deleted successfully',

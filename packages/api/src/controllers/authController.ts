@@ -9,6 +9,8 @@ import {
   resendConfirmationSchema,
 } from '../validators/auth.js';
 import { config } from '../config/index.js';
+import { emailService } from '../services/email/index.js';
+import { prisma } from '../utils/prisma.js';
 
 // Cookie options for refresh token
 const REFRESH_TOKEN_COOKIE_OPTIONS = {
@@ -37,9 +39,14 @@ export async function register(
 
     const { user, confirmationToken } = await authService.register(input);
 
-    // In a real application, you would send an email here
-    // For development, we'll include the token in the response
-    const emailLink = `${config.frontend.url}/confirm-email?token=${confirmationToken}`;
+    const confirmationLink = `${config.frontend.url}/confirm-email?token=${confirmationToken}`;
+
+    // Send welcome email asynchronously (won't block the response)
+    emailService.sendWelcomeEmailAsync({
+      name: user.name,
+      email: user.email,
+      confirmationLink,
+    });
 
     res.status(201).json({
       user: {
@@ -49,7 +56,7 @@ export async function register(
       },
       message: 'Registration successful. Please check your email to confirm your account.',
       // Only include in development
-      ...(config.env === 'development' && { _devEmailLink: emailLink }),
+      ...(config.env === 'development' && { _devEmailLink: confirmationLink }),
     });
   } catch (error) {
     next(error);
@@ -89,8 +96,24 @@ export async function resendConfirmation(
 
     const confirmationToken = await authService.resendConfirmation(input.email);
 
+    // Send confirmation reminder email if token was generated (user exists and is unconfirmed)
+    if (confirmationToken) {
+      const user = await prisma.user.findUnique({
+        where: { email: input.email },
+        select: { name: true },
+      });
+
+      if (user) {
+        const confirmationLink = `${config.frontend.url}/confirm-email?token=${confirmationToken}`;
+        emailService.sendConfirmationReminderAsync({
+          name: user.name,
+          email: input.email,
+          confirmationLink,
+        });
+      }
+    }
+
     // Always return success to prevent email enumeration
-    // In a real application, you would send an email here
     const response: Record<string, unknown> = {
       message: 'If an unconfirmed account exists with this email, a confirmation link has been sent.',
     };
@@ -221,8 +244,24 @@ export async function requestPasswordReset(
 
     const resetToken = await authService.requestPasswordReset(input.email);
 
+    // Send password reset email if token was generated (user exists)
+    if (resetToken) {
+      const user = await prisma.user.findUnique({
+        where: { email: input.email },
+        select: { name: true },
+      });
+
+      if (user) {
+        const resetLink = `${config.frontend.url}/reset-password?token=${resetToken}`;
+        emailService.sendPasswordResetEmailAsync({
+          name: user.name,
+          email: input.email,
+          resetLink,
+        });
+      }
+    }
+
     // Always return success to prevent email enumeration
-    // In a real application, you would send an email here
     const response: Record<string, unknown> = {
       message: 'If an account exists with this email, a password reset link has been sent.',
     };
@@ -246,7 +285,32 @@ export async function resetPassword(
   try {
     const input = passwordResetSchema.parse(req.body);
 
+    // Get user info before reset (we need email for notification)
+    const tokenData = await prisma.passwordResetToken.findFirst({
+      where: { token: input.token, usedAt: null },
+      include: { user: { select: { name: true, email: true } } },
+    });
+
     await authService.resetPassword(input.token, input.password);
+
+    // Send password changed notification email
+    if (tokenData?.user) {
+      const dateTime = new Date().toLocaleString('en-US', {
+        weekday: 'long',
+        year: 'numeric',
+        month: 'long',
+        day: 'numeric',
+        hour: '2-digit',
+        minute: '2-digit',
+        timeZoneName: 'short',
+      });
+
+      emailService.sendPasswordChangedEmailAsync({
+        name: tokenData.user.name,
+        email: tokenData.user.email,
+        dateTime,
+      });
+    }
 
     res.json({
       message: 'Password reset successfully. Please login with your new password.',
@@ -271,6 +335,12 @@ export async function changePassword(
       return;
     }
 
+    // Get user info before password change (for email notification)
+    const user = await prisma.user.findUnique({
+      where: { id: req.user.userId },
+      select: { name: true, email: true },
+    });
+
     const input = changePasswordSchema.parse(req.body);
 
     await authService.changePassword(
@@ -278,6 +348,25 @@ export async function changePassword(
       input.currentPassword,
       input.newPassword
     );
+
+    // Send password changed notification email
+    if (user) {
+      const dateTime = new Date().toLocaleString('en-US', {
+        weekday: 'long',
+        year: 'numeric',
+        month: 'long',
+        day: 'numeric',
+        hour: '2-digit',
+        minute: '2-digit',
+        timeZoneName: 'short',
+      });
+
+      emailService.sendPasswordChangedEmailAsync({
+        name: user.name,
+        email: user.email,
+        dateTime,
+      });
+    }
 
     // Clear refresh token cookie to force re-login
     res.clearCookie('refreshToken', { path: '/api/v1/auth' });

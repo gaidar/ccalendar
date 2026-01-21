@@ -13,8 +13,12 @@ const envSchema = z.object({
   JWT_ACCESS_EXPIRY: z.string().default('15m'),
   JWT_REFRESH_EXPIRY: z.string().default('7d'),
   FRONTEND_URL: z.string().url().default('http://localhost:3000'),
-  EMAIL_FROM: z.string().email().optional(),
-  EMAIL_PROVIDER: z.enum(['mailgun', 'smtp']).optional(),
+  // Email configuration
+  MAILGUN_API_KEY: z.string().optional(),
+  MAILGUN_DOMAIN: z.string().optional(),
+  FROM_EMAIL: z.string().email().default('noreply@countrycalendar.app'),
+  REPLY_TO_EMAIL: z.string().email().default('support@countrycalendar.app'),
+  ADMIN_EMAIL: z.string().email().optional(),
   // OAuth - optional in development, only enabled if configured
   GOOGLE_CLIENT_ID: z.string().optional(),
   GOOGLE_CLIENT_SECRET: z.string().optional(),
@@ -60,8 +64,14 @@ export const config = {
     url: env.FRONTEND_URL,
   },
   email: {
-    from: env.EMAIL_FROM,
-    provider: env.EMAIL_PROVIDER,
+    mailgunApiKey: env.MAILGUN_API_KEY,
+    mailgunDomain: env.MAILGUN_DOMAIN,
+    from: env.FROM_EMAIL,
+    replyTo: env.REPLY_TO_EMAIL,
+    adminEmail: env.ADMIN_EMAIL,
+    get isConfigured() {
+      return !!(env.MAILGUN_API_KEY && env.MAILGUN_DOMAIN);
+    },
   },
   oauth: {
     google: {
