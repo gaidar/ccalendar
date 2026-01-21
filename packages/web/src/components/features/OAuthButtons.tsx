@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useState, type ReactNode } from 'react';
 import { Button } from '@/components/ui/button';
 import { api } from '@/lib/api';
 
@@ -11,7 +11,7 @@ interface ProvidersResponse {
 const API_BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:3001/api/v1';
 
 // Provider configurations with official brand colors
-const providerConfig: Record<OAuthProvider, { name: string; bgColor: string; textColor: string; hoverColor: string; icon: JSX.Element }> = {
+const providerConfig: Record<OAuthProvider, { name: string; bgColor: string; textColor: string; hoverColor: string; icon: ReactNode }> = {
   google: {
     name: 'Google',
     bgColor: 'bg-white',

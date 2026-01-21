@@ -1,38 +1,52 @@
 import { useEffect, useState } from 'react';
 import { useNavigate, useSearchParams } from 'react-router-dom';
 import { useAuthStore } from '@/stores/authStore';
+import { authService } from '@/lib/authService';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Globe, Loader2, AlertCircle } from 'lucide-react';
 
 export default function OAuthCallbackPage() {
   const navigate = useNavigate();
   const [searchParams] = useSearchParams();
-  const { setToken } = useAuthStore();
+  const { login } = useAuthStore();
   const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
-    // Check for error in query params
-    const errorParam = searchParams.get('error');
-    if (errorParam) {
-      setError(decodeURIComponent(errorParam));
-      return;
-    }
+    const handleCallback = async () => {
+      // Check for error in query params
+      const errorParam = searchParams.get('error');
+      if (errorParam) {
+        setError(decodeURIComponent(errorParam));
+        return;
+      }
 
-    // Check for token in URL fragment (more secure than query params)
-    const hash = window.location.hash;
-    const tokenMatch = hash.match(/token=([^&]+)/);
+      // Check for token in URL fragment (more secure than query params)
+      const hash = window.location.hash;
+      const tokenMatch = hash.match(/token=([^&]+)/);
 
-    if (tokenMatch) {
-      const token = tokenMatch[1];
-      setToken(token);
-      // Clear the hash from URL for security
-      window.history.replaceState(null, '', window.location.pathname);
-      // Redirect to calendar/dashboard
-      navigate('/calendar', { replace: true });
-    } else {
-      setError('Authentication failed. No token received.');
-    }
-  }, [searchParams, setToken, navigate]);
+      if (tokenMatch) {
+        const token = tokenMatch[1];
+        // Clear the hash from URL for security
+        window.history.replaceState(null, '', window.location.pathname);
+
+        try {
+          // Store the token and fetch user data
+          localStorage.setItem('accessToken', token);
+          const user = await authService.getMe();
+          login(token, user);
+          // Redirect to calendar/dashboard
+          navigate('/calendar', { replace: true });
+        } catch {
+          setError('Failed to authenticate. Please try again.');
+          localStorage.removeItem('accessToken');
+        }
+      } else {
+        setError('Authentication failed. No token received.');
+      }
+    };
+
+    handleCallback();
+  }, [searchParams, login, navigate]);
 
   if (error) {
     return (
@@ -50,10 +64,7 @@ export default function OAuthCallbackPage() {
             <CardDescription className="text-red-500">{error}</CardDescription>
           </CardHeader>
           <CardContent className="text-center">
-            <a
-              href="/login"
-              className="text-primary hover:underline"
-            >
+            <a href="/login" className="text-primary hover:underline">
               Return to login
             </a>
           </CardContent>

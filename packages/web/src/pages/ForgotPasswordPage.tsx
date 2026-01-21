@@ -1,73 +1,87 @@
 import { useState } from 'react';
-import { Link, useNavigate, useLocation } from 'react-router-dom';
+import { Link } from 'react-router-dom';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
-import { Globe, Loader2, AlertCircle } from 'lucide-react';
+import { Globe, Loader2, AlertCircle, CheckCircle2, ArrowLeft } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
-import { OAuthButtons } from '@/components/features/OAuthButtons';
-import { useAuthStore } from '@/stores/authStore';
 import { authService } from '@/lib/authService';
-import { loginSchema, type LoginFormData } from '@/lib/validations/auth';
-import { toast } from 'sonner';
+import {
+  passwordResetRequestSchema,
+  type PasswordResetRequestFormData,
+} from '@/lib/validations/auth';
 
-export default function LoginPage() {
-  const navigate = useNavigate();
-  const location = useLocation();
-  const { login } = useAuthStore();
+export default function ForgotPasswordPage() {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
-
-  const from = (location.state as { from?: string })?.from || '/calendar';
+  const [success, setSuccess] = useState(false);
 
   const {
     register,
     handleSubmit,
     formState: { errors },
-    setValue,
-  } = useForm<LoginFormData>({
-    resolver: zodResolver(loginSchema),
+  } = useForm<PasswordResetRequestFormData>({
+    resolver: zodResolver(passwordResetRequestSchema),
     defaultValues: {
       email: '',
-      password: '',
     },
   });
 
-  const onSubmit = async (data: LoginFormData) => {
+  const onSubmit = async (data: PasswordResetRequestFormData) => {
     setIsSubmitting(true);
     setError(null);
 
     try {
-      const response = await authService.login(data);
-      login(response.accessToken, response.user);
-
-      if (!response.user.isConfirmed) {
-        toast.info('Please confirm your email to access all features', {
-          duration: 5000,
-        });
-      }
-
-      navigate(from, { replace: true });
+      await authService.requestPasswordReset(data.email);
+      setSuccess(true);
     } catch (err) {
-      const message = err instanceof Error ? err.message : 'Login failed';
+      // For security, we show success even if the email doesn't exist
+      // Only show error for rate limiting or server errors
+      const message = err instanceof Error ? err.message : 'Request failed';
 
-      if (message.toLowerCase().includes('locked')) {
-        setError('Too many login attempts. Please try again in 15 minutes.');
-      } else if (
-        message.toLowerCase().includes('invalid') ||
-        message.toLowerCase().includes('credentials')
-      ) {
-        setError('Invalid email or password. Please try again.');
-        setValue('password', '');
+      if (message.toLowerCase().includes('rate') || message.toLowerCase().includes('limit')) {
+        setError('Too many requests. Please try again later.');
       } else {
-        setError(message);
+        // Show success regardless to prevent email enumeration
+        setSuccess(true);
       }
     } finally {
       setIsSubmitting(false);
     }
   };
+
+  if (success) {
+    return (
+      <div className="flex min-h-screen items-center justify-center bg-gradient-to-br from-blue-50 via-white to-indigo-50 p-4">
+        <Card className="w-full max-w-md">
+          <CardHeader className="text-center">
+            <Link to="/" className="mx-auto mb-4 flex items-center gap-2">
+              <Globe className="h-8 w-8 text-primary" />
+              <span className="text-xl font-bold">Country Calendar</span>
+            </Link>
+            <div className="mx-auto mb-2 flex h-12 w-12 items-center justify-center rounded-full bg-green-100">
+              <CheckCircle2 className="h-6 w-6 text-green-600" />
+            </div>
+            <CardTitle className="text-xl">Check your email</CardTitle>
+            <CardDescription>
+              If an account exists with this email, you will receive a password reset link. The link
+              will expire in 1 hour.
+            </CardDescription>
+          </CardHeader>
+          <CardContent className="text-center">
+            <Link to="/login">
+              <Button variant="outline">
+                <ArrowLeft className="mr-2 h-4 w-4" />
+                Back to Login
+              </Button>
+            </Link>
+          </CardContent>
+        </Card>
+      </div>
+    );
+  }
 
   return (
     <div className="flex min-h-screen items-center justify-center bg-gradient-to-br from-blue-50 via-white to-indigo-50 p-4">
@@ -77,8 +91,10 @@ export default function LoginPage() {
             <Globe className="h-8 w-8 text-primary" />
             <span className="text-xl font-bold">Country Calendar</span>
           </Link>
-          <CardTitle className="text-2xl">Welcome back</CardTitle>
-          <CardDescription>Sign in to your account to continue</CardDescription>
+          <CardTitle className="text-2xl">Forgot password?</CardTitle>
+          <CardDescription>
+            Enter your email address and we&apos;ll send you a link to reset your password.
+          </CardDescription>
         </CardHeader>
         <CardContent>
           {error && (
@@ -113,56 +129,26 @@ export default function LoginPage() {
               )}
             </div>
 
-            <div className="space-y-2">
-              <div className="flex items-center justify-between">
-                <Label htmlFor="password">Password</Label>
-                <Link
-                  to="/forgot-password"
-                  className="text-sm text-muted-foreground hover:text-primary"
-                  tabIndex={isSubmitting ? -1 : 0}
-                >
-                  Forgot password?
-                </Link>
-              </div>
-              <Input
-                id="password"
-                type="password"
-                autoComplete="current-password"
-                aria-required="true"
-                aria-invalid={!!errors.password}
-                aria-describedby={errors.password ? 'password-error' : undefined}
-                disabled={isSubmitting}
-                {...register('password')}
-              />
-              {errors.password && (
-                <p id="password-error" className="text-sm text-red-500" role="alert">
-                  {errors.password.message}
-                </p>
-              )}
-            </div>
-
             <Button type="submit" className="w-full" disabled={isSubmitting}>
               {isSubmitting ? (
                 <>
                   <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                  Signing in...
+                  Sending...
                 </>
               ) : (
-                'Sign In'
+                'Send Reset Link'
               )}
             </Button>
           </form>
 
-          <OAuthButtons />
-
           <div className="mt-6 text-center text-sm text-muted-foreground">
-            Don&apos;t have an account?{' '}
             <Link
-              to="/register"
-              className="text-primary hover:underline"
+              to="/login"
+              className="inline-flex items-center text-primary hover:underline"
               tabIndex={isSubmitting ? -1 : 0}
             >
-              Sign up
+              <ArrowLeft className="mr-1 h-3 w-3" />
+              Back to Login
             </Link>
           </div>
         </CardContent>

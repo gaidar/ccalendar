@@ -1,35 +1,35 @@
-import { useState } from 'react';
-import { Link } from 'react-router-dom';
+import { useState, useEffect } from 'react';
+import { Link, useParams, useNavigate } from 'react-router-dom';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
-import { Globe, Loader2, AlertCircle, CheckCircle2 } from 'lucide-react';
+import { Globe, Loader2, AlertCircle, CheckCircle2, ArrowLeft } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
-import { OAuthButtons } from '@/components/features/OAuthButtons';
 import { authService } from '@/lib/authService';
 import {
-  registerSchema,
-  type RegisterFormData,
+  passwordResetSchema,
+  type PasswordResetFormData,
   getPasswordStrength,
 } from '@/lib/validations/auth';
 
-export default function RegisterPage() {
+export default function ResetPasswordPage() {
+  const { token } = useParams<{ token: string }>();
+  const navigate = useNavigate();
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [success, setSuccess] = useState(false);
+  const [isTokenInvalid, setIsTokenInvalid] = useState(false);
 
   const {
     register,
     handleSubmit,
     watch,
     formState: { errors },
-  } = useForm<RegisterFormData>({
-    resolver: zodResolver(registerSchema),
+  } = useForm<PasswordResetFormData>({
+    resolver: zodResolver(passwordResetSchema),
     defaultValues: {
-      name: '',
-      email: '',
       password: '',
       confirmPassword: '',
     },
@@ -38,22 +38,30 @@ export default function RegisterPage() {
   const password = watch('password');
   const passwordStrength = password ? getPasswordStrength(password) : null;
 
-  const onSubmit = async (data: RegisterFormData) => {
+  useEffect(() => {
+    if (!token) {
+      setIsTokenInvalid(true);
+    }
+  }, [token]);
+
+  const onSubmit = async (data: PasswordResetFormData) => {
+    if (!token) return;
+
     setIsSubmitting(true);
     setError(null);
 
     try {
-      await authService.register({
-        name: data.name,
-        email: data.email,
-        password: data.password,
-      });
+      await authService.confirmPasswordReset(token, data.password);
       setSuccess(true);
     } catch (err) {
-      const message = err instanceof Error ? err.message : 'Registration failed';
+      const message = err instanceof Error ? err.message : 'Password reset failed';
 
-      if (message.toLowerCase().includes('already exists')) {
-        setError('An account with this email already exists. Try logging in instead.');
+      if (
+        message.toLowerCase().includes('expired') ||
+        message.toLowerCase().includes('invalid')
+      ) {
+        setIsTokenInvalid(true);
+        setError('This password reset link has expired or is invalid.');
       } else {
         setError(message);
       }
@@ -74,15 +82,43 @@ export default function RegisterPage() {
             <div className="mx-auto mb-2 flex h-12 w-12 items-center justify-center rounded-full bg-green-100">
               <CheckCircle2 className="h-6 w-6 text-green-600" />
             </div>
-            <CardTitle className="text-xl text-green-600">Registration Successful!</CardTitle>
+            <CardTitle className="text-xl text-green-600">Password Reset Successfully</CardTitle>
             <CardDescription>
-              Please check your email to confirm your account. The confirmation link will expire in
-              48 hours.
+              Your password has been reset. You can now log in with your new password.
             </CardDescription>
           </CardHeader>
           <CardContent className="text-center">
-            <Link to="/login">
-              <Button variant="outline">Go to Login</Button>
+            <Button onClick={() => navigate('/login', { replace: true })}>Go to Login</Button>
+          </CardContent>
+        </Card>
+      </div>
+    );
+  }
+
+  if (isTokenInvalid) {
+    return (
+      <div className="flex min-h-screen items-center justify-center bg-gradient-to-br from-blue-50 via-white to-indigo-50 p-4">
+        <Card className="w-full max-w-md">
+          <CardHeader className="text-center">
+            <Link to="/" className="mx-auto mb-4 flex items-center gap-2">
+              <Globe className="h-8 w-8 text-primary" />
+              <span className="text-xl font-bold">Country Calendar</span>
+            </Link>
+            <div className="mx-auto mb-2 flex h-12 w-12 items-center justify-center rounded-full bg-red-100">
+              <AlertCircle className="h-6 w-6 text-red-600" />
+            </div>
+            <CardTitle className="text-xl text-red-600">Link Expired or Invalid</CardTitle>
+            <CardDescription>
+              This password reset link has expired or is invalid. Please request a new password
+              reset link.
+            </CardDescription>
+          </CardHeader>
+          <CardContent className="flex flex-col items-center gap-3">
+            <Link to="/forgot-password">
+              <Button>Request New Link</Button>
+            </Link>
+            <Link to="/login" className="text-sm text-muted-foreground hover:text-primary">
+              Back to Login
             </Link>
           </CardContent>
         </Card>
@@ -98,8 +134,8 @@ export default function RegisterPage() {
             <Globe className="h-8 w-8 text-primary" />
             <span className="text-xl font-bold">Country Calendar</span>
           </Link>
-          <CardTitle className="text-2xl">Create an account</CardTitle>
-          <CardDescription>Start tracking your travels today</CardDescription>
+          <CardTitle className="text-2xl">Reset your password</CardTitle>
+          <CardDescription>Enter your new password below.</CardDescription>
         </CardHeader>
         <CardContent>
           {error && (
@@ -115,47 +151,7 @@ export default function RegisterPage() {
 
           <form onSubmit={handleSubmit(onSubmit)} className="space-y-4" noValidate>
             <div className="space-y-2">
-              <Label htmlFor="name">Name</Label>
-              <Input
-                id="name"
-                type="text"
-                placeholder="John Doe"
-                autoComplete="name"
-                aria-required="true"
-                aria-invalid={!!errors.name}
-                aria-describedby={errors.name ? 'name-error' : undefined}
-                disabled={isSubmitting}
-                {...register('name')}
-              />
-              {errors.name && (
-                <p id="name-error" className="text-sm text-red-500" role="alert">
-                  {errors.name.message}
-                </p>
-              )}
-            </div>
-
-            <div className="space-y-2">
-              <Label htmlFor="email">Email</Label>
-              <Input
-                id="email"
-                type="email"
-                placeholder="you@example.com"
-                autoComplete="email"
-                aria-required="true"
-                aria-invalid={!!errors.email}
-                aria-describedby={errors.email ? 'email-error' : undefined}
-                disabled={isSubmitting}
-                {...register('email')}
-              />
-              {errors.email && (
-                <p id="email-error" className="text-sm text-red-500" role="alert">
-                  {errors.email.message}
-                </p>
-              )}
-            </div>
-
-            <div className="space-y-2">
-              <Label htmlFor="password">Password</Label>
+              <Label htmlFor="password">New Password</Label>
               <Input
                 id="password"
                 type="password"
@@ -193,7 +189,7 @@ export default function RegisterPage() {
             </div>
 
             <div className="space-y-2">
-              <Label htmlFor="confirmPassword">Confirm Password</Label>
+              <Label htmlFor="confirmPassword">Confirm New Password</Label>
               <Input
                 id="confirmPassword"
                 type="password"
@@ -215,24 +211,22 @@ export default function RegisterPage() {
               {isSubmitting ? (
                 <>
                   <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                  Creating account...
+                  Resetting...
                 </>
               ) : (
-                'Create Account'
+                'Reset Password'
               )}
             </Button>
           </form>
 
-          <OAuthButtons />
-
           <div className="mt-6 text-center text-sm text-muted-foreground">
-            Already have an account?{' '}
             <Link
               to="/login"
-              className="text-primary hover:underline"
+              className="inline-flex items-center text-primary hover:underline"
               tabIndex={isSubmitting ? -1 : 0}
             >
-              Sign in
+              <ArrowLeft className="mr-1 h-3 w-3" />
+              Back to Login
             </Link>
           </div>
         </CardContent>

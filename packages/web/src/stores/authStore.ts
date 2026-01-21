@@ -1,5 +1,6 @@
 import { create } from 'zustand';
 import { persist } from 'zustand/middleware';
+import { authService } from '@/lib/authService';
 
 export interface User {
   id: string;
@@ -13,10 +14,12 @@ interface AuthState {
   user: User | null;
   isAuthenticated: boolean;
   isLoading: boolean;
+  isInitialized: boolean;
   setUser: (user: User | null) => void;
   setLoading: (loading: boolean) => void;
-  setToken: (token: string) => void;
-  logout: () => void;
+  login: (accessToken: string, user: User) => void;
+  logout: () => Promise<void>;
+  initialize: () => Promise<void>;
 }
 
 export const useAuthStore = create<AuthState>()(
@@ -25,6 +28,7 @@ export const useAuthStore = create<AuthState>()(
       user: null,
       isAuthenticated: false,
       isLoading: true,
+      isInitialized: false,
       setUser: user =>
         set({
           user,
@@ -32,17 +36,52 @@ export const useAuthStore = create<AuthState>()(
           isLoading: false,
         }),
       setLoading: isLoading => set({ isLoading }),
-      setToken: token => {
-        localStorage.setItem('accessToken', token);
-        // Note: User data should be fetched separately after setting token
+      login: (accessToken: string, user: User) => {
+        localStorage.setItem('accessToken', accessToken);
+        set({
+          user,
+          isAuthenticated: true,
+          isLoading: false,
+        });
       },
-      logout: () => {
+      logout: async () => {
+        try {
+          await authService.logout();
+        } catch {
+          // Ignore errors - we're logging out anyway
+        }
         localStorage.removeItem('accessToken');
         set({
           user: null,
           isAuthenticated: false,
           isLoading: false,
         });
+      },
+      initialize: async () => {
+        const token = localStorage.getItem('accessToken');
+        if (!token) {
+          set({ isLoading: false, isInitialized: true });
+          return;
+        }
+
+        try {
+          const user = await authService.getMe();
+          set({
+            user,
+            isAuthenticated: true,
+            isLoading: false,
+            isInitialized: true,
+          });
+        } catch {
+          // Token is invalid or expired
+          localStorage.removeItem('accessToken');
+          set({
+            user: null,
+            isAuthenticated: false,
+            isLoading: false,
+            isInitialized: true,
+          });
+        }
       },
     }),
     {
