@@ -1,8 +1,18 @@
 import { z } from 'zod';
 import dotenv from 'dotenv';
+import path from 'path';
+import { fileURLToPath } from 'url';
 
-// Load environment variables
-dotenv.config();
+const __dirname = path.dirname(fileURLToPath(import.meta.url));
+
+// Load environment variables from root directory
+const envFile = process.env.NODE_ENV === 'production'
+  ? '.env.production'
+  : '.env.development';
+
+// Try loading from root directory (for local dev), then fallback to default
+dotenv.config({ path: path.resolve(__dirname, '../../../../', envFile) });
+dotenv.config(); // Also load local .env if present
 
 const envSchema = z.object({
   NODE_ENV: z.enum(['development', 'production', 'test']).default('development'),

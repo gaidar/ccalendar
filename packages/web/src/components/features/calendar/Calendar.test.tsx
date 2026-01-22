@@ -19,8 +19,6 @@ const mockUseRecordsByDateMap = vi.mocked(useRecordsByDateMap);
 const mockUseCountries = vi.mocked(useCountries);
 
 describe('Calendar', () => {
-  const mockOnDayClick = vi.fn();
-
   beforeEach(() => {
     vi.useFakeTimers();
     vi.setSystemTime(new Date(2024, 5, 15, 12, 0, 0)); // June 15, 2024
@@ -31,6 +29,7 @@ describe('Calendar', () => {
       store.setViewMonth(new Date(2024, 5, 1));
       store.clearSelection();
       store.clearRange();
+      store.closePicker();
     });
 
     // Mock hooks
@@ -60,7 +59,7 @@ describe('Calendar', () => {
   });
 
   it('renders the calendar grid', () => {
-    render(<Calendar onDayClick={mockOnDayClick} />);
+    render(<Calendar />);
 
     // Check for weekday headers
     expect(screen.getByText('Sun')).toBeInTheDocument();
@@ -69,7 +68,7 @@ describe('Calendar', () => {
   });
 
   it('renders month navigation', () => {
-    render(<Calendar onDayClick={mockOnDayClick} />);
+    render(<Calendar />);
 
     expect(screen.getByText('June 2024')).toBeInTheDocument();
     expect(screen.getByLabelText('Previous month')).toBeInTheDocument();
@@ -77,7 +76,7 @@ describe('Calendar', () => {
   });
 
   it('navigates to previous month', () => {
-    render(<Calendar onDayClick={mockOnDayClick} />);
+    render(<Calendar />);
 
     fireEvent.click(screen.getByLabelText('Previous month'));
 
@@ -85,7 +84,7 @@ describe('Calendar', () => {
   });
 
   it('navigates to next month', () => {
-    render(<Calendar onDayClick={mockOnDayClick} />);
+    render(<Calendar />);
 
     fireEvent.click(screen.getByLabelText('Next month'));
 
@@ -93,7 +92,7 @@ describe('Calendar', () => {
   });
 
   it('renders all days of the month', () => {
-    render(<Calendar onDayClick={mockOnDayClick} />);
+    render(<Calendar />);
 
     // June has 30 days - use getAllByText since leading/trailing days may have same numbers
     for (let i = 1; i <= 30; i++) {
@@ -102,38 +101,54 @@ describe('Calendar', () => {
     }
   });
 
-  it('calls onDayClick when a day is clicked', () => {
-    render(<Calendar onDayClick={mockOnDayClick} />);
+  it('starts range selection on single click', () => {
+    render(<Calendar />);
 
     // Click on day 10 (past date)
     const day10Button = screen.getByLabelText(/2024-06-10/);
     fireEvent.click(day10Button);
 
-    expect(mockOnDayClick).toHaveBeenCalled();
-    const calledDate = mockOnDayClick.mock.calls[0][0];
-    expect(calledDate.getDate()).toBe(10);
-  });
-
-  it('shows range mode indicator when in range mode', () => {
+    // Advance timers past the double-click delay
     act(() => {
-      useCalendarStore.getState().toggleRangeMode();
+      vi.advanceTimersByTime(350);
     });
 
-    render(<Calendar onDayClick={mockOnDayClick} />);
-
-    expect(screen.getByText('Select start date')).toBeInTheDocument();
+    // Check that rangeStart is set
+    const { rangeStart } = useCalendarStore.getState();
+    expect(rangeStart?.getDate()).toBe(10);
   });
 
-  it('shows "Select end date" after selecting start', () => {
+  it('shows pending range start indicator when first date is selected', () => {
     act(() => {
-      const store = useCalendarStore.getState();
-      store.toggleRangeMode();
-      store.selectDate(new Date(2024, 5, 10));
+      useCalendarStore.getState().handleSingleClick(new Date(2024, 5, 10));
     });
 
-    render(<Calendar onDayClick={mockOnDayClick} />);
+    render(<Calendar />);
 
-    expect(screen.getByText('Select end date')).toBeInTheDocument();
+    // The day 10 button should have aria-selected due to isPendingRangeStart
+    const day10Button = screen.getByLabelText(/2024-06-10/);
+    expect(day10Button).toHaveAttribute('aria-selected', 'true');
+  });
+
+  it('completes range selection on second click', () => {
+    act(() => {
+      useCalendarStore.getState().handleSingleClick(new Date(2024, 5, 10));
+    });
+
+    render(<Calendar />);
+
+    // Click on day 14 to complete range
+    const day14Button = screen.getByLabelText(/2024-06-14/);
+    fireEvent.click(day14Button);
+
+    act(() => {
+      vi.advanceTimersByTime(350);
+    });
+
+    const { selectedRange, rangeStart } = useCalendarStore.getState();
+    expect(rangeStart).toBeNull();
+    expect(selectedRange?.start.getDate()).toBe(10);
+    expect(selectedRange?.end.getDate()).toBe(14);
   });
 
   it('shows Today button that navigates to current date', () => {
@@ -142,7 +157,7 @@ describe('Calendar', () => {
       useCalendarStore.getState().setViewMonth(new Date(2024, 0, 1)); // January
     });
 
-    render(<Calendar onDayClick={mockOnDayClick} />);
+    render(<Calendar />);
 
     expect(screen.getByText('January 2024')).toBeInTheDocument();
 
@@ -158,14 +173,14 @@ describe('Calendar', () => {
       error: null,
     });
 
-    render(<Calendar onDayClick={mockOnDayClick} />);
+    render(<Calendar />);
 
     // The grid should have opacity class when loading
     const grid = document.querySelector('.grid.grid-cols-7.gap-px');
     expect(grid?.className).toContain('opacity-50');
   });
 
-  it('renders records from recordsByDate map', () => {
+  it('renders country flags for records', () => {
     const recordsMap = new Map([
       [
         '2024-06-10',
@@ -188,9 +203,26 @@ describe('Calendar', () => {
       error: null,
     });
 
-    render(<Calendar onDayClick={mockOnDayClick} />);
+    render(<Calendar />);
 
-    // The day 10 should have a country indicator
-    expect(screen.getByTitle('US')).toBeInTheDocument();
+    // The day 10 should have a country flag
+    expect(screen.getByAltText('US flag')).toBeInTheDocument();
+  });
+
+  it('clears pending range on Escape key', () => {
+    act(() => {
+      useCalendarStore.getState().handleSingleClick(new Date(2024, 5, 10));
+    });
+
+    render(<Calendar />);
+
+    // Verify rangeStart is set
+    expect(useCalendarStore.getState().rangeStart).not.toBeNull();
+
+    // Press Escape
+    fireEvent.keyDown(document, { key: 'Escape' });
+
+    // rangeStart should be cleared
+    expect(useCalendarStore.getState().rangeStart).toBeNull();
   });
 });

@@ -1,4 +1,5 @@
 import { create } from 'zustand';
+import { isSameDay } from '@/components/features/calendar/utils';
 
 interface DateRange {
   start: Date;
@@ -10,10 +11,10 @@ interface CalendarState {
   viewMonth: Date;
   selectedDate: Date | null;
 
-  // Range selection
-  isRangeMode: boolean;
+  // Range selection (gesture-based: click-click selects range)
   selectedRange: DateRange | null;
   rangeStart: Date | null;
+  hoveredDate: Date | null;
 
   // Country picker
   isPickerOpen: boolean;
@@ -28,7 +29,10 @@ interface CalendarState {
   selectDate: (date: Date) => void;
   clearSelection: () => void;
 
-  toggleRangeMode: () => void;
+  // Range actions (gesture-based)
+  handleSingleClick: (date: Date) => void;
+  handleDoubleClick: (date: Date) => void;
+  setHoveredDate: (date: Date | null) => void;
   setRangeStart: (date: Date) => void;
   setRangeEnd: (date: Date) => void;
   clearRange: () => void;
@@ -40,9 +44,9 @@ interface CalendarState {
 export const useCalendarStore = create<CalendarState>((set, get) => ({
   viewMonth: new Date(),
   selectedDate: null,
-  isRangeMode: false,
   selectedRange: null,
   rangeStart: null,
+  hoveredDate: null,
   isPickerOpen: false,
   pickerTargetDate: null,
 
@@ -67,35 +71,42 @@ export const useCalendarStore = create<CalendarState>((set, get) => ({
   },
 
   selectDate: (date: Date) => {
-    const { isRangeMode, rangeStart } = get();
-
-    if (isRangeMode) {
-      if (!rangeStart) {
-        set({ rangeStart: date });
-      } else {
-        const start = rangeStart < date ? rangeStart : date;
-        const end = rangeStart < date ? date : rangeStart;
-        set({
-          selectedRange: { start, end },
-          rangeStart: null,
-        });
-      }
-    } else {
-      set({ selectedDate: date });
-    }
+    set({ selectedDate: date });
   },
 
   clearSelection: () => set({ selectedDate: null }),
 
-  toggleRangeMode: () => {
-    const { isRangeMode } = get();
-    set({
-      isRangeMode: !isRangeMode,
-      selectedRange: null,
-      rangeStart: null,
-      selectedDate: null,
-    });
+  // Single click: starts range selection or completes it
+  handleSingleClick: (date: Date) => {
+    const { rangeStart, openPicker } = get();
+
+    if (!rangeStart) {
+      // First click: set range start
+      set({ rangeStart: date, selectedRange: null });
+    } else if (isSameDay(rangeStart, date)) {
+      // Clicked same date: clear range start and open picker for single date
+      set({ rangeStart: null });
+      openPicker(date);
+    } else {
+      // Second click on different date: complete range
+      const start = rangeStart < date ? rangeStart : date;
+      const end = rangeStart < date ? date : rangeStart;
+      set({
+        selectedRange: { start, end },
+        rangeStart: null,
+        hoveredDate: null,
+      });
+    }
   },
+
+  // Double click: open picker for single date
+  handleDoubleClick: (date: Date) => {
+    const { openPicker } = get();
+    set({ rangeStart: null, selectedRange: null, hoveredDate: null });
+    openPicker(date);
+  },
+
+  setHoveredDate: (date: Date | null) => set({ hoveredDate: date }),
 
   setRangeStart: (date: Date) => set({ rangeStart: date }),
 
@@ -108,6 +119,7 @@ export const useCalendarStore = create<CalendarState>((set, get) => ({
     set({
       selectedRange: { start, end },
       rangeStart: null,
+      hoveredDate: null,
     });
   },
 
@@ -115,7 +127,7 @@ export const useCalendarStore = create<CalendarState>((set, get) => ({
     set({
       selectedRange: null,
       rangeStart: null,
-      isRangeMode: false,
+      hoveredDate: null,
     }),
 
   openPicker: (date: Date) =>

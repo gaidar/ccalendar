@@ -1,5 +1,5 @@
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
-import { render, screen, fireEvent } from '@/test/utils';
+import { render, screen, fireEvent, act } from '@/test/utils';
 import { DayCell } from './DayCell';
 import type { TravelRecord } from '@/types';
 import type { Country } from '@/hooks/useCountries';
@@ -30,8 +30,13 @@ describe('DayCell', () => {
     isRangeStart: false,
     isRangeEnd: false,
     isInSelectedRange: false,
+    isInHoverRange: false,
+    isPendingRangeStart: false,
     onClick: vi.fn(),
+    onDoubleClick: vi.fn(),
     onKeyDown: vi.fn(),
+    onMouseEnter: vi.fn(),
+    onMouseLeave: vi.fn(),
   };
 
   beforeEach(() => {
@@ -49,22 +54,54 @@ describe('DayCell', () => {
     expect(screen.getByText('15')).toBeInTheDocument();
   });
 
-  it('calls onClick when clicked', () => {
+  it('calls onClick after double-click delay for single click', async () => {
     const onClick = vi.fn();
-    render(<DayCell {...defaultProps} onClick={onClick} />);
+    const onDoubleClick = vi.fn();
+    render(<DayCell {...defaultProps} onClick={onClick} onDoubleClick={onDoubleClick} />);
 
     fireEvent.click(screen.getByRole('button'));
+
+    // onClick should not be called immediately
+    expect(onClick).not.toHaveBeenCalled();
+
+    // Advance timers past the double-click delay
+    act(() => {
+      vi.advanceTimersByTime(350);
+    });
+
     expect(onClick).toHaveBeenCalledWith(defaultProps.date);
+    expect(onDoubleClick).not.toHaveBeenCalled();
   });
 
-  it('does not call onClick for future dates', () => {
+  it('calls onDoubleClick on double-click', () => {
     const onClick = vi.fn();
+    const onDoubleClick = vi.fn();
+    render(<DayCell {...defaultProps} onClick={onClick} onDoubleClick={onDoubleClick} />);
+
+    const button = screen.getByRole('button');
+    fireEvent.click(button);
+    fireEvent.click(button);
+
+    expect(onDoubleClick).toHaveBeenCalledWith(defaultProps.date);
+    expect(onClick).not.toHaveBeenCalled();
+  });
+
+  it('does not call onClick or onDoubleClick for future dates', () => {
+    const onClick = vi.fn();
+    const onDoubleClick = vi.fn();
     const futureDate = new Date(2024, 5, 25); // June 25, 2024
 
-    render(<DayCell {...defaultProps} date={futureDate} onClick={onClick} />);
+    render(<DayCell {...defaultProps} date={futureDate} onClick={onClick} onDoubleClick={onDoubleClick} />);
 
     fireEvent.click(screen.getByRole('button'));
+    fireEvent.click(screen.getByRole('button'));
+
+    act(() => {
+      vi.advanceTimersByTime(350);
+    });
+
     expect(onClick).not.toHaveBeenCalled();
+    expect(onDoubleClick).not.toHaveBeenCalled();
   });
 
   it('is disabled for future dates', () => {
@@ -85,7 +122,7 @@ describe('DayCell', () => {
     expect(onKeyDown.mock.calls[0][1]).toEqual(defaultProps.date);
   });
 
-  it('renders country color dots for records', () => {
+  it('renders country flags for records', () => {
     const records = [
       createMockRecord('1', 'US', '2024-06-15'),
       createMockRecord('2', 'CA', '2024-06-15'),
@@ -93,9 +130,9 @@ describe('DayCell', () => {
 
     render(<DayCell {...defaultProps} records={records} />);
 
-    // Check for colored dots (we can check by title attribute)
-    expect(screen.getByTitle('US')).toBeInTheDocument();
-    expect(screen.getByTitle('CA')).toBeInTheDocument();
+    // Check for flag images by alt text
+    expect(screen.getByAltText('US flag')).toBeInTheDocument();
+    expect(screen.getByAltText('CA flag')).toBeInTheDocument();
   });
 
   it('shows overflow indicator when more than 3 countries', () => {
@@ -144,6 +181,12 @@ describe('DayCell', () => {
     expect(screen.getByRole('button')).toHaveAttribute('aria-selected', 'true');
   });
 
+  it('has aria-selected when isPendingRangeStart', () => {
+    render(<DayCell {...defaultProps} isPendingRangeStart={true} />);
+
+    expect(screen.getByRole('button')).toHaveAttribute('aria-selected', 'true');
+  });
+
   it('has appropriate aria-label', () => {
     const records = [createMockRecord('1', 'US', '2024-06-15')];
     render(<DayCell {...defaultProps} records={records} />);
@@ -159,5 +202,35 @@ describe('DayCell', () => {
     // The button should have different styling for outside month
     const button = screen.getByRole('button');
     expect(button.className).toContain('text-muted-foreground');
+  });
+
+  it('calls onMouseEnter when hovering', () => {
+    const onMouseEnter = vi.fn();
+    render(<DayCell {...defaultProps} onMouseEnter={onMouseEnter} />);
+
+    fireEvent.mouseEnter(screen.getByRole('button'));
+    expect(onMouseEnter).toHaveBeenCalledWith(defaultProps.date);
+  });
+
+  it('calls onMouseLeave when leaving', () => {
+    const onMouseLeave = vi.fn();
+    render(<DayCell {...defaultProps} onMouseLeave={onMouseLeave} />);
+
+    fireEvent.mouseLeave(screen.getByRole('button'));
+    expect(onMouseLeave).toHaveBeenCalled();
+  });
+
+  it('applies pending range start styles', () => {
+    render(<DayCell {...defaultProps} isPendingRangeStart={true} />);
+
+    const button = screen.getByRole('button');
+    expect(button.className).toContain('animate-pulse');
+  });
+
+  it('applies hover range styles', () => {
+    render(<DayCell {...defaultProps} isInHoverRange={true} />);
+
+    const button = screen.getByRole('button');
+    expect(button.className).toContain('bg-primary/10');
   });
 });

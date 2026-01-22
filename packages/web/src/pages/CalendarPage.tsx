@@ -1,8 +1,8 @@
 import { useCallback, useMemo } from 'react';
-import { CalendarRange, Loader2 } from 'lucide-react';
+import { Loader2 } from 'lucide-react';
 import { toast } from 'sonner';
-import { Button } from '@/components/ui/button';
 import { Calendar, CountryPicker, BulkUpdateModal, formatDateKey } from '@/components/features/calendar';
+import { CalendarHelp } from '@/components/features/calendar/CalendarHelp';
 import { useCalendarStore } from '@/stores/calendarStore';
 import { useAuthStore } from '@/stores/authStore';
 import {
@@ -18,11 +18,8 @@ export default function CalendarPage() {
     viewMonth,
     isPickerOpen,
     pickerTargetDate,
-    isRangeMode,
     selectedRange,
-    openPicker,
     closePicker,
-    toggleRangeMode,
     clearRange,
   } = useCalendarStore();
 
@@ -41,13 +38,6 @@ export default function CalendarPage() {
   const selectedCountryCodes = useMemo(
     () => selectedDateRecords.map(r => r.countryCode),
     [selectedDateRecords]
-  );
-
-  const handleDayClick = useCallback(
-    (date: Date) => {
-      openPicker(date);
-    },
-    [openPicker]
   );
 
   const handlePickerSave = useCallback(
@@ -114,25 +104,13 @@ export default function CalendarPage() {
   return (
     <div className="container mx-auto px-4 py-6">
       {/* Header */}
-      <div className="mb-6 flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
-        <div>
-          <h1 className="text-2xl font-bold">Welcome back, {user?.name}</h1>
-          <p className="text-muted-foreground">Track and visualize your journeys</p>
-        </div>
-        <div className="flex items-center gap-2">
-          <Button
-            variant={isRangeMode ? 'default' : 'outline'}
-            onClick={toggleRangeMode}
-            className="gap-2"
-          >
-            <CalendarRange className="h-4 w-4" />
-            <span className="hidden sm:inline">
-              {isRangeMode ? 'Cancel Range' : 'Select Range'}
-            </span>
-            <span className="sm:hidden">Range</span>
-          </Button>
-        </div>
+      <div className="mb-6">
+        <h1 className="text-2xl font-bold">Welcome back, {user?.name}</h1>
+        <p className="text-muted-foreground">Track and visualize your journeys</p>
       </div>
+
+      {/* Help block */}
+      <CalendarHelp />
 
       {/* Loading state */}
       {recordsLoading && (
@@ -142,7 +120,7 @@ export default function CalendarPage() {
       )}
 
       {/* Calendar */}
-      {!recordsLoading && <Calendar onDayClick={handleDayClick} />}
+      {!recordsLoading && <Calendar />}
 
       {/* Legend */}
       <div className="mt-6 flex flex-wrap items-center gap-4 text-sm text-muted-foreground">
@@ -151,14 +129,13 @@ export default function CalendarPage() {
           <span>Today</span>
         </div>
         <div className="flex items-center gap-2">
-          <div className="h-3 w-3 rounded-full bg-primary" />
-          <span>Selected</span>
+          <div className="h-3 w-3 rounded-full bg-primary animate-pulse" />
+          <span>Range start</span>
         </div>
         <div className="flex items-center gap-2">
           <div className="flex gap-0.5">
-            <div className="h-2 w-2 rounded-full bg-blue-500" />
-            <div className="h-2 w-2 rounded-full bg-green-500" />
-            <div className="h-2 w-2 rounded-full bg-orange-500" />
+            <div className="h-4 w-5 rounded-sm bg-gradient-to-r from-blue-500 to-blue-600" />
+            <div className="h-4 w-5 rounded-sm bg-gradient-to-r from-green-500 to-green-600" />
           </div>
           <span>Countries visited</span>
         </div>

@@ -34,8 +34,10 @@ All MVP features are implemented and deployed. Summary by area:
 | Status | Feature | Notes |
 |--------|---------|-------|
 | `[~]` | Optimistic UI updates | Basic loading/invalidation done |
-| `[~]` | Keyboard navigation | Enter/Space/Tab done, arrows pending |
-| `[ ]` | E2E tests (Playwright) | Setup + critical journeys |
+| `[X]` | Keyboard navigation | Full support including arrows, Enter/Space for picker |
+| `[X]` | E2E tests (Playwright) | Setup + critical journeys (registration, login, travel records) |
+| `[X]` | Country flags display | SVG flags bundled locally, shown in calendar and picker |
+| `[X]` | Calendar help block | Dismissible help explaining double-click/range interactions |
 
 ---
 

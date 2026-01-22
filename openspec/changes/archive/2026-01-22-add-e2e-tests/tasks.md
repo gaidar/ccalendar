@@ -49,4 +49,4 @@
 
 - [x] 7.1 Document E2E test conventions in README
 - [x] 7.2 Add instructions for running E2E tests locally
-- [ ] 7.3 Code review of all changes
+- [x] 7.3 Code review of all changes

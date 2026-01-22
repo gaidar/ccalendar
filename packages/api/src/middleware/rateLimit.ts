@@ -28,7 +28,8 @@ const baseConfig: Partial<Options> = {
   standardHeaders: true, // Return rate limit info in headers (RateLimit-*)
   legacyHeaders: false, // Disable X-RateLimit-* headers
   skip: () => isTestEnv,
-  validate: { xForwardedForHeader: false, default: !isTestEnv }, // Disable validation warnings in test
+  // Disable validation in test; disable IPv6 key generator validation in dev (false positive with custom keyGenerator)
+  validate: { xForwardedForHeader: false, default: !isTestEnv, keyGeneratorIpFallback: false },
 };
 
 /**

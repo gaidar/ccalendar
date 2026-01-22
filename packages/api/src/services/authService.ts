@@ -3,6 +3,10 @@ import { passwordService } from './passwordService.js';
 import { tokenService } from './tokenService.js';
 import { HttpError, ForbiddenError, UnauthorizedError } from '../middleware/errorHandler.js';
 import type { RegisterInput, LoginInput } from '../validators/auth.js';
+import { config } from '../config/index.js';
+
+// Auto-confirm accounts in development mode (no email verification needed)
+const AUTO_CONFIRM_IN_DEV = config.env === 'development';
 
 const LOCKOUT_ATTEMPTS = 5;
 const LOCKOUT_DURATION_MINUTES = 15;
@@ -43,20 +47,21 @@ export const authService = {
     // Hash password
     const hashedPassword = await passwordService.hash(input.password);
 
-    // Create user
+    // Create user (auto-confirm in development mode)
     const user = await prisma.user.create({
       data: {
         name: input.name,
         email: input.email,
         password: hashedPassword,
-        isConfirmed: false,
+        isConfirmed: AUTO_CONFIRM_IN_DEV,
+        ...(AUTO_CONFIRM_IN_DEV && { confirmedAt: new Date() }),
       },
     });
 
-    // Create email confirmation token
-    const confirmationToken = await tokenService.createEmailConfirmationToken(
-      user.id
-    );
+    // Create email confirmation token (only needed if not auto-confirmed)
+    const confirmationToken = AUTO_CONFIRM_IN_DEV
+      ? ''
+      : await tokenService.createEmailConfirmationToken(user.id);
 
     return {
       user: {

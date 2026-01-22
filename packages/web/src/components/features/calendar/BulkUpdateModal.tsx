@@ -18,6 +18,7 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { Checkbox } from '@/components/ui/checkbox';
+import { Flag } from '@/components/ui/Flag';
 import { useCountries, useCountrySearch, type Country } from '@/hooks/useCountries';
 import { useRecentCountries } from '@/hooks/useRecentCountries';
 import { cn } from '@/lib/utils';
@@ -166,9 +167,10 @@ export function BulkUpdateModal({
                     : 'bg-muted hover:bg-accent border-transparent'
                 )}
               >
-                <span
-                  className="h-2 w-2 rounded-full"
-                  style={{ backgroundColor: country.color }}
+                <Flag
+                  countryCode={country.code}
+                  size="xs"
+                  fallbackColor={country.color}
                 />
                 {country.code}
               </button>
@@ -195,8 +197,13 @@ export function BulkUpdateModal({
                   checked={isSelected}
                   onCheckedChange={() => toggleCountry(country.code)}
                 />
+                <Flag
+                  countryCode={country.code}
+                  size="sm"
+                  fallbackColor={country.color}
+                />
                 <span
-                  className="h-3 w-3 rounded-full flex-shrink-0"
+                  className="h-2.5 w-2.5 rounded-full flex-shrink-0"
                   style={{ backgroundColor: country.color }}
                 />
                 <span className="flex-1 truncate">{country.name}</span>

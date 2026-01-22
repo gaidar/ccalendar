@@ -1,4 +1,4 @@
-import { useCallback, useMemo, type KeyboardEvent } from 'react';
+import { useCallback, useMemo, useEffect, type KeyboardEvent } from 'react';
 import { DayCell } from './DayCell';
 import { MonthNavigation } from './MonthNavigation';
 import { getCalendarDays, getWeekdayNames, formatDateKey, isSameDay, isInRange } from './utils';
@@ -7,21 +7,20 @@ import { useRecordsByDateMap } from '@/hooks/useTravelRecords';
 import { useCountries } from '@/hooks/useCountries';
 import { cn } from '@/lib/utils';
 
-interface CalendarProps {
-  onDayClick: (date: Date) => void;
-}
-
-export function Calendar({ onDayClick }: CalendarProps) {
+export function Calendar() {
   const {
     viewMonth,
     selectedDate,
-    isRangeMode,
     selectedRange,
     rangeStart,
+    hoveredDate,
     goToNextMonth,
     goToPrevMonth,
     goToToday,
-    selectDate,
+    handleSingleClick,
+    handleDoubleClick,
+    setHoveredDate,
+    clearRange,
   } = useCalendarStore();
 
   const { recordsByDate, isLoading } = useRecordsByDateMap(viewMonth);
@@ -36,33 +35,47 @@ export function Calendar({ onDayClick }: CalendarProps) {
   const weekdays = useMemo(() => getWeekdayNames(), []);
   const mobileWeekdays = useMemo(() => getWeekdayNames(true), []);
 
-  const handleDayClick = useCallback(
-    (date: Date) => {
-      if (isRangeMode) {
-        selectDate(date);
-      } else {
-        onDayClick(date);
+  // Handle escape key to cancel range selection
+  useEffect(() => {
+    const handleEscape = (e: globalThis.KeyboardEvent) => {
+      if (e.key === 'Escape' && rangeStart) {
+        clearRange();
       }
-    },
-    [isRangeMode, selectDate, onDayClick]
-  );
+    };
+    window.addEventListener('keydown', handleEscape);
+    return () => window.removeEventListener('keydown', handleEscape);
+  }, [rangeStart, clearRange]);
 
   const handleKeyDown = useCallback(
     (e: KeyboardEvent, date: Date) => {
       if (e.key === 'Enter' || e.key === ' ') {
         e.preventDefault();
-        handleDayClick(date);
+        // Keyboard acts like double-click (opens picker for single date)
+        handleDoubleClick(date);
       }
     },
-    [handleDayClick]
+    [handleDoubleClick]
   );
+
+  const handleMouseEnter = useCallback(
+    (date: Date) => {
+      if (rangeStart) {
+        setHoveredDate(date);
+      }
+    },
+    [rangeStart, setHoveredDate]
+  );
+
+  const handleMouseLeave = useCallback(() => {
+    setHoveredDate(null);
+  }, [setHoveredDate]);
 
   const isDateSelected = (date: Date): boolean => {
     if (!selectedDate) return false;
     return isSameDay(date, selectedDate);
   };
 
-  const isRangeStart = (date: Date): boolean => {
+  const isRangeStartDate = (date: Date): boolean => {
     if (selectedRange) return isSameDay(date, selectedRange.start);
     if (rangeStart) return isSameDay(date, rangeStart);
     return false;
@@ -78,6 +91,15 @@ export function Calendar({ onDayClick }: CalendarProps) {
     return isInRange(date, selectedRange.start, selectedRange.end);
   };
 
+  // Preview range when hovering (before second click)
+  const isInHoverRange = (date: Date): boolean => {
+    if (!rangeStart || !hoveredDate) return false;
+    if (isSameDay(rangeStart, hoveredDate)) return false;
+    const start = rangeStart < hoveredDate ? rangeStart : hoveredDate;
+    const end = rangeStart < hoveredDate ? hoveredDate : rangeStart;
+    return isInRange(date, start, end);
+  };
+
   return (
     <div className="space-y-4">
       <MonthNavigation
@@ -87,14 +109,10 @@ export function Calendar({ onDayClick }: CalendarProps) {
         onToday={goToToday}
       />
 
-      {/* Range mode indicator */}
-      {isRangeMode && (
-        <div className="rounded-lg bg-primary/10 px-3 py-2 text-sm text-primary">
-          {rangeStart
-            ? 'Select end date'
-            : selectedRange
-              ? `Selected: ${formatDateKey(selectedRange.start)} to ${formatDateKey(selectedRange.end)}`
-              : 'Select start date'}
+      {/* Range selection indicator */}
+      {rangeStart && (
+        <div className="rounded-lg bg-primary/10 px-3 py-2 text-sm text-primary animate-in fade-in slide-in-from-top-1 duration-200">
+          Click another date to select a range, or click the same date to edit it
         </div>
       )}
 
@@ -127,11 +145,16 @@ export function Calendar({ onDayClick }: CalendarProps) {
                 records={records}
                 countries={countries}
                 isSelected={isDateSelected(date)}
-                isRangeStart={isRangeStart(date)}
+                isRangeStart={isRangeStartDate(date)}
                 isRangeEnd={isRangeEnd(date)}
                 isInSelectedRange={isInSelectedRange(date)}
-                onClick={handleDayClick}
+                isInHoverRange={isInHoverRange(date)}
+                isPendingRangeStart={!!rangeStart && isSameDay(date, rangeStart)}
+                onClick={handleSingleClick}
+                onDoubleClick={handleDoubleClick}
                 onKeyDown={handleKeyDown}
+                onMouseEnter={handleMouseEnter}
+                onMouseLeave={handleMouseLeave}
               />
             );
           })}

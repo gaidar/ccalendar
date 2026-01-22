@@ -34,14 +34,13 @@ const filterSensitiveData = winston.format((info) => {
   return { level, message, timestamp, ...filteredRest };
 });
 
-// Development format with colors
+// Development format (colorize disabled due to Node 24 compatibility issues with logform)
 const developmentFormat = winston.format.combine(
   filterSensitiveData(),
-  winston.format.colorize(),
   winston.format.timestamp({ format: 'HH:mm:ss' }),
   winston.format.printf(({ level, message, timestamp, ...meta }) => {
     const metaStr = Object.keys(meta).length ? ` ${JSON.stringify(meta)}` : '';
-    return `${timestamp} ${level}: ${message}${metaStr}`;
+    return `${timestamp} [${level.toUpperCase()}]: ${message}${metaStr}`;
   })
 );
 
