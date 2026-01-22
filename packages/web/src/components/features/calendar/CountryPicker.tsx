@@ -1,4 +1,4 @@
-import { useState, useEffect, useMemo } from 'react';
+import { useState, useEffect, useMemo, useCallback } from 'react';
 import { Search, X, Check, AlertCircle } from 'lucide-react';
 
 const MAX_COUNTRIES_PER_DAY = 3;
@@ -90,7 +90,7 @@ export function CountryPicker({
     });
   }, [filteredCountries, selected]);
 
-  const toggleCountry = (code: string) => {
+  const toggleCountry = useCallback((code: string) => {
     const upperCode = code.toUpperCase();
     setSelected(prev => {
       const next = new Set(prev);
@@ -101,7 +101,7 @@ export function CountryPicker({
       }
       return next;
     });
-  };
+  }, []);
 
   const isAtLimit = selected.size >= MAX_COUNTRIES_PER_DAY;
 

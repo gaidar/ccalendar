@@ -1,6 +1,7 @@
 import { useCallback, useMemo } from 'react';
 import { Loader2 } from 'lucide-react';
 import { toast } from 'sonner';
+import { logger } from '@/lib/logger';
 import { Calendar, CountryPicker, BulkUpdateModal, DateSelectionPanel, formatDateKey } from '@/components/features/calendar';
 import { CalendarHelp } from '@/components/features/calendar/CalendarHelp';
 import { useCalendarStore } from '@/stores/calendarStore';
@@ -83,7 +84,7 @@ export default function CalendarPage() {
         toast.success('Travel record updated');
       } catch (error) {
         toast.error('Failed to update travel record');
-        console.error(error);
+        logger.error('Operation failed', error);
       }
     },
     [pickerTargetDate, selectedCountryCodes, selectedDateRecords, createRecord, deleteRecord, closePicker]
@@ -104,7 +105,7 @@ export default function CalendarPage() {
         toast.success('Records updated successfully');
       } catch (error) {
         toast.error('Failed to update records');
-        console.error(error);
+        logger.error('Operation failed', error);
       }
     },
     [selectedRange, bulkUpdate, clearRange]
@@ -118,7 +119,7 @@ export default function CalendarPage() {
         toast.success('Country removed');
       } catch (error) {
         toast.error('Failed to remove country');
-        console.error(error);
+        logger.error('Operation failed', error);
       }
     },
     [deleteRecord]

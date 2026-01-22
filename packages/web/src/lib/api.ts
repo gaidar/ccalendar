@@ -1,6 +1,4 @@
-// In production, use relative path (same origin). In development, use localhost.
-const API_BASE_URL = import.meta.env.VITE_API_URL ||
-  (import.meta.env.PROD ? '/api/v1' : 'http://localhost:3001/api/v1');
+import { API_BASE_URL } from './api-config';
 
 // Default request timeout in milliseconds
 const DEFAULT_TIMEOUT_MS = 30000;

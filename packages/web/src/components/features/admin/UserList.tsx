@@ -1,5 +1,5 @@
 import type { ChangeEvent } from 'react';
-import { useState, useCallback } from 'react';
+import { useState, useCallback, memo } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Search, ChevronLeft, ChevronRight, Eye, Shield, CheckCircle } from 'lucide-react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
@@ -22,7 +22,7 @@ interface UserRowProps {
   onView: (id: string) => void;
 }
 
-function UserRow({ user, onView }: UserRowProps) {
+const UserRow = memo(function UserRow({ user, onView }: UserRowProps) {
   return (
     <tr className="border-b border-border hover:bg-muted/50 transition-colors">
       <td className="py-3 px-4">
@@ -59,7 +59,7 @@ function UserRow({ user, onView }: UserRowProps) {
       </td>
     </tr>
   );
-}
+});
 
 function TableSkeleton() {
   return (
@@ -102,10 +102,10 @@ export function UserList() {
     [navigate]
   );
 
-  const handleSearchChange = (e: ChangeEvent<HTMLInputElement>) => {
+  const handleSearchChange = useCallback((e: ChangeEvent<HTMLInputElement>) => {
     setSearch(e.target.value);
     setPage(1); // Reset to first page on search
-  };
+  }, []);
 
   return (
     <Card>

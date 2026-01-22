@@ -128,13 +128,16 @@ class ImportService {
       throw new ValidationError('Import file contains no valid records');
     }
 
-    // Calculate date range
-    const dates = records.map(r => r.date).sort();
-    return {
-      records,
-      startDate: dates[0],
-      endDate: dates[dates.length - 1],
-    };
+    // Calculate date range using O(n) reduce instead of O(n log n) sort
+    const { startDate, endDate } = records.reduce(
+      (acc, r) => ({
+        startDate: r.date < acc.startDate ? r.date : acc.startDate,
+        endDate: r.date > acc.endDate ? r.date : acc.endDate,
+      }),
+      { startDate: records[0].date, endDate: records[0].date }
+    );
+
+    return { records, startDate, endDate };
   }
 
   /**
@@ -263,13 +266,16 @@ class ImportService {
       throw new ValidationError('Import file contains no valid records');
     }
 
-    // Calculate date range
-    const dates = records.map(r => r.date).sort();
-    return {
-      records,
-      startDate: dates[0],
-      endDate: dates[dates.length - 1],
-    };
+    // Calculate date range using O(n) reduce instead of O(n log n) sort
+    const { startDate, endDate } = records.reduce(
+      (acc, r) => ({
+        startDate: r.date < acc.startDate ? r.date : acc.startDate,
+        endDate: r.date > acc.endDate ? r.date : acc.endDate,
+      }),
+      { startDate: records[0].date, endDate: records[0].date }
+    );
+
+    return { records, startDate, endDate };
   }
 
   /**

@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, memo } from 'react';
 import { ChevronDown, ChevronUp, MapPin } from 'lucide-react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -28,7 +28,7 @@ interface CountryRowProps {
   country: CountryStatistic;
 }
 
-function CountryRow({ country }: CountryRowProps) {
+const CountryRow = memo(function CountryRow({ country }: CountryRowProps) {
   return (
     <div className="flex items-center gap-3 py-3 border-b last:border-b-0">
       <div
@@ -58,7 +58,7 @@ function CountryRow({ country }: CountryRowProps) {
       </div>
     </div>
   );
-}
+});
 
 export function CountryStats({ countries, isLoading }: CountryStatsProps) {
   const [showAll, setShowAll] = useState(false);

@@ -13,6 +13,7 @@ import { OAuthButtons } from '@/components/features/OAuthButtons';
 import { useAuthStore } from '@/stores/authStore';
 import { authService } from '@/lib/authService';
 import { api } from '@/lib/api';
+import { logger } from '@/lib/logger';
 import { loginSchema, type LoginFormData } from '@/lib/validations/auth';
 import { toast } from 'sonner';
 
@@ -45,7 +46,7 @@ export default function LoginPage() {
         const data = await api.get<AuthConfigResponse>('/auth/providers');
         setCaptchaConfig(data.captcha);
       } catch (error) {
-        console.error('Failed to fetch auth config:', error);
+        logger.error('Failed to fetch auth config', error);
       }
     }
     fetchAuthConfig();

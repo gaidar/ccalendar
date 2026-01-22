@@ -1,16 +1,14 @@
 import { useEffect, useState, type ReactNode } from 'react';
 import { Button } from '@/components/ui/button';
 import { api } from '@/lib/api';
+import { API_BASE_URL } from '@/lib/api-config';
+import { logger } from '@/lib/logger';
 
 type OAuthProvider = 'google' | 'facebook' | 'apple';
 
 interface ProvidersResponse {
   providers: OAuthProvider[];
 }
-
-// In production, use relative path (same origin). In development, use localhost.
-const API_BASE_URL = import.meta.env.VITE_API_URL ||
-  (import.meta.env.PROD ? '/api/v1' : 'http://localhost:3001/api/v1');
 
 // Provider configurations with official brand colors
 const providerConfig: Record<OAuthProvider, { name: string; bgColor: string; textColor: string; hoverColor: string; icon: ReactNode }> = {
@@ -78,7 +76,7 @@ export function OAuthButtons({ className = '' }: OAuthButtonsProps) {
         const data = await api.get<ProvidersResponse>('/auth/providers');
         setProviders(data.providers);
       } catch (error) {
-        console.error('Failed to fetch OAuth providers:', error);
+        logger.error('Failed to fetch OAuth providers', error);
         setProviders([]);
       } finally {
         setLoading(false);

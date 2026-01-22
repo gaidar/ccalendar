@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useCallback, memo } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Eye, ChevronLeft, ChevronRight, Filter, Clock, CheckCircle, XCircle } from 'lucide-react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
@@ -61,7 +61,7 @@ interface TicketRowProps {
   onView: (referenceId: string) => void;
 }
 
-function TicketRow({ ticket, onView }: TicketRowProps) {
+const TicketRow = memo(function TicketRow({ ticket, onView }: TicketRowProps) {
   const statusConfig = getStatusConfig(ticket.status);
   const StatusIcon = statusConfig.icon;
 
@@ -93,7 +93,7 @@ function TicketRow({ ticket, onView }: TicketRowProps) {
       </td>
     </tr>
   );
-}
+});
 
 function TableSkeleton() {
   return (
@@ -135,9 +135,12 @@ export function TicketList() {
     statusFilter === 'all' ? undefined : statusFilter
   );
 
-  const handleView = (referenceId: string) => {
-    navigate(`/admin/tickets/${referenceId}`);
-  };
+  const handleView = useCallback(
+    (referenceId: string) => {
+      navigate(`/admin/tickets/${referenceId}`);
+    },
+    [navigate]
+  );
 
   const handleStatusChange = (value: string) => {
     setStatusFilter(value as TicketStatus | 'all');

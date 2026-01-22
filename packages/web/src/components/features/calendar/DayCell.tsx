@@ -1,4 +1,4 @@
-import { useRef, useCallback, type KeyboardEvent } from 'react';
+import { useRef, useCallback, memo, type KeyboardEvent } from 'react';
 import { cn } from '@/lib/utils';
 import { isToday, isFuture, formatDateKey } from './utils';
 import { Flag } from '@/components/ui/Flag';
@@ -26,7 +26,7 @@ interface DayCellProps {
 const MAX_VISIBLE_FLAGS = 3;
 const DOUBLE_CLICK_DELAY = 300;
 
-export function DayCell({
+export const DayCell = memo(function DayCell({
   date,
   currentMonth,
   records,
@@ -155,4 +155,4 @@ export function DayCell({
       )}
     </button>
   );
-}
+});
