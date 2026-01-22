@@ -32,7 +32,7 @@ export function CalendarHelp({ initialDismissed }: CalendarHelpProps = {}) {
 
   if (isDismissed) {
     return (
-      <div className="mb-4 flex justify-end">
+      <div className="mt-4 flex justify-end">
         <Button
           variant="ghost"
           size="sm"
@@ -52,8 +52,8 @@ export function CalendarHelp({ initialDismissed }: CalendarHelpProps = {}) {
       role="note"
       aria-label="Calendar usage instructions"
       className={cn(
-        'mb-6 rounded-xl border bg-gradient-to-r from-primary/5 via-primary/10 to-primary/5 p-4',
-        'animate-in fade-in slide-in-from-top-2 duration-300'
+        'mt-6 rounded-xl border bg-gradient-to-r from-primary/5 via-primary/10 to-primary/5 p-4',
+        'animate-in fade-in slide-in-from-bottom-2 duration-300'
       )}
     >
       <div className="flex items-start justify-between gap-4">

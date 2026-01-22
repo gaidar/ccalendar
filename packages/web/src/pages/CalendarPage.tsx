@@ -109,9 +109,6 @@ export default function CalendarPage() {
         <p className="text-muted-foreground">Track and visualize your journeys</p>
       </div>
 
-      {/* Help block */}
-      <CalendarHelp />
-
       {/* Loading state */}
       {recordsLoading && (
         <div className="flex items-center justify-center py-12">
@@ -140,6 +137,9 @@ export default function CalendarPage() {
           <span>Countries visited</span>
         </div>
       </div>
+
+      {/* Help block */}
+      <CalendarHelp />
 
       {/* Country Picker for single date */}
       <CountryPicker

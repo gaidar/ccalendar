@@ -109,13 +109,6 @@ export function Calendar() {
         onToday={goToToday}
       />
 
-      {/* Range selection indicator */}
-      {rangeStart && (
-        <div className="rounded-lg bg-primary/10 px-3 py-2 text-sm text-primary animate-in fade-in slide-in-from-top-1 duration-200">
-          Click another date to select a range, or click the same date to edit it
-        </div>
-      )}
-
       {/* Calendar grid */}
       <div className="overflow-hidden rounded-lg border bg-muted/50">
         {/* Weekday headers */}
