@@ -5,6 +5,8 @@ import type {
   CountryStatisticsResponse,
   PresetPeriod,
   ExportFormat,
+  ImportPreviewResponse,
+  ImportResult,
 } from '@/types';
 
 // In production, use relative path (same origin). In development, use localhost.
@@ -157,4 +159,75 @@ export function formatRetryTime(seconds: number): string {
     return '1 minute';
   }
   return `${minutes} minutes`;
+}
+
+/**
+ * Hook for previewing import data
+ */
+export function useImportPreview() {
+  return useMutation({
+    mutationFn: async (file: File): Promise<ImportPreviewResponse> => {
+      const token = localStorage.getItem('accessToken');
+      const formData = new FormData();
+      formData.append('file', file);
+
+      const response = await fetch(`${API_BASE_URL}/travel-records/import/preview`, {
+        method: 'POST',
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+        body: formData,
+      });
+
+      if (!response.ok) {
+        const errorData = await response.json();
+        throw new Error(errorData.message || 'Failed to preview import');
+      }
+
+      return response.json();
+    },
+  });
+}
+
+interface ImportRateLimitError {
+  message: string;
+  retryAfterSeconds: number;
+}
+
+/**
+ * Hook for importing travel data
+ */
+export function useImport() {
+  return useMutation({
+    mutationFn: async (file: File): Promise<ImportResult> => {
+      const token = localStorage.getItem('accessToken');
+      const formData = new FormData();
+      formData.append('file', file);
+
+      const response = await fetch(`${API_BASE_URL}/travel-records/import`, {
+        method: 'POST',
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+        body: formData,
+      });
+
+      const retryAfter = response.headers.get('Retry-After');
+
+      if (response.status === 429) {
+        const error: ImportRateLimitError = {
+          message: 'Import rate limit exceeded',
+          retryAfterSeconds: retryAfter ? parseInt(retryAfter, 10) : 3600,
+        };
+        throw error;
+      }
+
+      if (!response.ok) {
+        const errorData = await response.json();
+        throw new Error(errorData.message || 'Import failed');
+      }
+
+      return response.json();
+    },
+  });
 }

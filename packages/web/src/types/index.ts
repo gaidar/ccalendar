@@ -100,7 +100,28 @@ export interface CountryStatisticsResponse {
 
 export type PresetPeriod = 7 | 30 | 90 | 365;
 
-export type ExportFormat = 'csv' | 'xlsx';
+export type ExportFormat = 'csv' | 'xlsx' | 'json';
+
+// Import types
+export interface ImportRecord {
+  date: string;
+  countryCode: string;
+  countryName?: string;
+}
+
+export interface ImportPreviewResponse {
+  totalRecords: number;
+  startDate: string;
+  endDate: string;
+  sampleRecords: ImportRecord[];
+}
+
+export interface ImportResult {
+  imported: number;
+  deleted: number;
+  startDate: string;
+  endDate: string;
+}
 
 // Profile types
 export interface ProfileStats {

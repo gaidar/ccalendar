@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { Download, FileSpreadsheet, FileText, AlertCircle, Clock } from 'lucide-react';
+import { Download, FileSpreadsheet, FileText, FileJson, AlertCircle, Clock } from 'lucide-react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { useExport, isRateLimitError, formatRetryTime } from '@/hooks/useReports';
@@ -108,6 +108,19 @@ export function ExportOptions({ selectedDays, customRange }: ExportOptionsProps)
               <FileSpreadsheet className="h-4 w-4" />
             )}
             Export Excel
+          </Button>
+          <Button
+            variant="outline"
+            onClick={() => handleExport('json')}
+            disabled={isExporting}
+            className="gap-2"
+          >
+            {exportingFormat === 'json' ? (
+              <div className="h-4 w-4 animate-spin rounded-full border-2 border-current border-t-transparent" />
+            ) : (
+              <FileJson className="h-4 w-4" />
+            )}
+            Export JSON
           </Button>
         </div>
 

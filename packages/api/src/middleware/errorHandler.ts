@@ -1,5 +1,6 @@
 import { Request, Response, NextFunction } from 'express';
 import { ZodError } from 'zod';
+import { MulterError } from 'multer';
 import { logger } from '../utils/logger.js';
 
 export interface AppError extends Error {
@@ -74,6 +75,44 @@ export function errorHandler(
       error: 'VALIDATION_ERROR',
       message: 'Request validation failed',
       details,
+    });
+    return;
+  }
+
+  // Handle Multer errors (file upload errors)
+  if (err instanceof MulterError) {
+    let message = 'File upload error';
+    let code = 'UPLOAD_ERROR';
+
+    switch (err.code) {
+      case 'LIMIT_FILE_SIZE':
+        message = 'File size exceeds maximum allowed (5MB)';
+        code = 'FILE_TOO_LARGE';
+        break;
+      case 'LIMIT_UNEXPECTED_FILE':
+        message = 'Unexpected file field';
+        break;
+      default:
+        message = err.message;
+    }
+
+    res.status(400).json({
+      error: code,
+      message,
+      details: [],
+    });
+    return;
+  }
+
+  // Handle multer file filter errors (custom validation errors)
+  if (err.message && (
+    err.message.includes('Only CSV and JSON files are allowed') ||
+    err.message.includes('Invalid file format')
+  )) {
+    res.status(400).json({
+      error: 'INVALID_FORMAT',
+      message: 'Only CSV and JSON files are allowed',
+      details: [],
     });
     return;
   }

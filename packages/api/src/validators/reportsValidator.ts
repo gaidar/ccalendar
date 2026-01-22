@@ -86,8 +86,8 @@ export const summaryQuerySchema = z
  */
 export const exportQuerySchema = z
   .object({
-    format: z.enum(['csv', 'xlsx'], {
-      errorMap: () => ({ message: 'Format must be csv or xlsx' }),
+    format: z.enum(['csv', 'xlsx', 'json'], {
+      errorMap: () => ({ message: 'Format must be csv, xlsx, or json' }),
     }),
     start: z
       .string()
@@ -119,4 +119,4 @@ export const exportQuerySchema = z
 // Type exports
 export type SummaryQueryInput = z.infer<typeof summaryQuerySchema>;
 export type ExportQueryInput = z.infer<typeof exportQuerySchema>;
-export type ExportFormat = 'csv' | 'xlsx';
+export type ExportFormat = 'csv' | 'xlsx' | 'json';

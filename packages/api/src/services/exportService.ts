@@ -25,6 +25,21 @@ function generateFilename(format: ExportFormat, start: string, end: string): str
 }
 
 /**
+ * JSON export metadata interface
+ */
+export interface JsonExportData {
+  exportDate: string;
+  startDate: string;
+  endDate: string;
+  totalRecords: number;
+  records: Array<{
+    date: string;
+    countryCode: string;
+    countryName: string;
+  }>;
+}
+
+/**
  * Escapes a CSV field if it contains special characters
  */
 function escapeCsvField(field: string): string {
@@ -124,6 +139,38 @@ class ExportService {
   }
 
   /**
+   * Export travel records to JSON format
+   */
+  async exportToJson(
+    userId: string,
+    start: string,
+    end: string
+  ): Promise<ExportResult> {
+    const records = await reportsService.getRecordsForExport(userId, start, end);
+
+    const jsonData: JsonExportData = {
+      exportDate: new Date().toISOString(),
+      startDate: start,
+      endDate: end,
+      totalRecords: records.length,
+      records: records.map(record => ({
+        date: record.date,
+        countryCode: record.countryCode,
+        countryName: record.countryName,
+      })),
+    };
+
+    const jsonString = JSON.stringify(jsonData, null, 2);
+    const stream = Readable.from([jsonString]);
+
+    return {
+      stream,
+      contentType: 'application/json',
+      filename: generateFilename('json', start, end),
+    };
+  }
+
+  /**
    * Export travel records in the specified format
    */
   async export(
@@ -134,6 +181,9 @@ class ExportService {
   ): Promise<ExportResult> {
     if (format === 'csv') {
       return this.exportToCsv(userId, start, end);
+    }
+    if (format === 'json') {
+      return this.exportToJson(userId, start, end);
     }
     return this.exportToXlsx(userId, start, end);
   }

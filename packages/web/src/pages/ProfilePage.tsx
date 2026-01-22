@@ -4,6 +4,7 @@ import {
   ChangePassword,
   ConnectedAccounts,
   DeleteAccount,
+  ImportData,
 } from '@/components/features/profile';
 import { useProfile } from '@/hooks/useProfile';
 
@@ -31,9 +32,10 @@ export default function ProfilePage() {
           <ChangePassword profile={profile} />
         </div>
 
-        {/* Right column - Connected accounts and danger zone */}
+        {/* Right column - Connected accounts, import, and danger zone */}
         <div className="space-y-6">
           <ConnectedAccounts profile={profile} isLoading={isLoading} />
+          <ImportData />
           <DeleteAccount profile={profile} />
         </div>
       </div>
