@@ -36,7 +36,7 @@ export const captchaService = {
       }),
     });
 
-    const data: RecaptchaResponse = await response.json();
+    const data = (await response.json()) as RecaptchaResponse;
     return data.success;
   },
 };

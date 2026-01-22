@@ -139,21 +139,13 @@ export function captureMessage(message: string, level: Sentry.SeverityLevel = 'i
 }
 
 /**
- * Get Sentry request handler middleware
+ * Get Sentry error handler setup function
  */
-export function getSentryRequestHandler(): ReturnType<typeof Sentry.setupExpressErrorHandler> | null {
+export function getSentryErrorHandler(): typeof Sentry.setupExpressErrorHandler | null {
   if (!config.sentry.isConfigured) return null;
 
   return Sentry.setupExpressErrorHandler;
 }
-
-/**
- * Sentry middleware exports
- */
-export const sentryMiddleware = {
-  requestHandler: Sentry.Handlers?.requestHandler?.(),
-  errorHandler: Sentry.Handlers?.errorHandler?.(),
-};
 
 // Re-export Sentry for direct access when needed
 export { Sentry };

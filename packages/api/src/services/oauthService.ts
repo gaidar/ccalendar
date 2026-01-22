@@ -140,6 +140,7 @@ export const oauthService = {
         accessToken,
         refreshToken,
       },
+      rememberMe: false,
     };
   },
 

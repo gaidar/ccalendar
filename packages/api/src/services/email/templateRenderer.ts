@@ -31,7 +31,7 @@ export function renderTemplate(
 ): string {
   const { escapeHtml: shouldEscape = true } = options;
 
-  return template.replace(/\{\{(\w+)\}\}/g, (match, key: string) => {
+  return template.replace(/\{\{(\w+)\}\}/g, (_match, key: string) => {
     const value = data[key];
 
     if (value === undefined || value === null) {

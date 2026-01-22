@@ -1,4 +1,4 @@
-import Redis from 'ioredis';
+import { Redis } from 'ioredis';
 import { config } from '../config/index.js';
 import { logger } from './logger.js';
 
@@ -19,10 +19,10 @@ export function getRedisClient(): Redis | null {
   }
 
   try {
-    redisClient = new Redis(config.redis.url, {
+    const client = new Redis(config.redis.url, {
       maxRetriesPerRequest: 3,
       lazyConnect: true,
-      retryStrategy(times): number | null {
+      retryStrategy(times: number): number | null {
         if (times > 3) {
           logger.error('Redis connection failed after 3 retries');
           return null; // Stop retrying
@@ -31,27 +31,28 @@ export function getRedisClient(): Redis | null {
       },
     });
 
-    redisClient.on('connect', () => {
+    client.on('connect', () => {
       isConnected = true;
       logger.info('Redis connected');
     });
 
-    redisClient.on('error', (error) => {
+    client.on('error', (error: Error) => {
       isConnected = false;
       logger.error('Redis error:', { error: error.message });
     });
 
-    redisClient.on('close', () => {
+    client.on('close', () => {
       isConnected = false;
       logger.info('Redis connection closed');
     });
 
     // Connect lazily
-    redisClient.connect().catch((error) => {
+    client.connect().catch((error: Error) => {
       logger.error('Failed to connect to Redis:', { error: error.message });
     });
 
-    return redisClient;
+    redisClient = client;
+    return client;
   } catch (error) {
     logger.error('Failed to create Redis client:', { error });
     return null;
