@@ -54,6 +54,11 @@ vi.mock('../../src/config/index.js', () => ({
       adminEmail: undefined,
       isConfigured: false,
     },
+    recaptcha: {
+      publicKey: undefined,
+      privateKey: undefined,
+      isRequired: false,
+    },
   },
 }));
 
