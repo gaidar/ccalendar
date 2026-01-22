@@ -1,4 +1,4 @@
-import { useState, useEffect, useMemo } from 'react';
+import { useState, useEffect, useMemo, useCallback } from 'react';
 import { Search, X, Check, CalendarRange, AlertCircle } from 'lucide-react';
 
 const MAX_COUNTRIES_PER_DAY = 3;
@@ -21,8 +21,7 @@ import { Input } from '@/components/ui/input';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { Checkbox } from '@/components/ui/checkbox';
 import { Flag } from '@/components/ui/Flag';
-import { useCountries, useCountrySearch, type Country } from '@/hooks/useCountries';
-import { useRecentCountries } from '@/hooks/useRecentCountries';
+import { useCountries, useCountrySearch } from '@/hooks/useCountries';
 import { cn } from '@/lib/utils';
 import { formatDateKey } from './utils';
 
@@ -35,6 +34,7 @@ interface BulkUpdateModalProps {
   isOpen: boolean;
   onClose: () => void;
   dateRange: DateRange | null;
+  existingCountryCodes: string[];
   onSave: (countryCodes: string[]) => void;
   isLoading?: boolean;
 }
@@ -63,33 +63,38 @@ export function BulkUpdateModal({
   isOpen,
   onClose,
   dateRange,
+  existingCountryCodes,
   onSave,
   isLoading = false,
 }: BulkUpdateModalProps) {
   const { data: countriesData } = useCountries();
   const countries = countriesData?.countries || [];
   const { searchTerm, setSearchTerm, filteredCountries } = useCountrySearch(countries);
-  const { recentCountries, addRecentCountries } = useRecentCountries();
   const [selected, setSelected] = useState<Set<string>>(new Set());
   const isMobile = useMediaQuery('(max-width: 640px)');
 
-  // Reset when opening
+  // Initialize with existing countries when opening
   useEffect(() => {
     if (isOpen) {
-      setSelected(new Set());
+      setSelected(new Set(existingCountryCodes.map(c => c.toUpperCase())));
       setSearchTerm('');
     }
-  }, [isOpen, setSearchTerm]);
+  }, [isOpen, existingCountryCodes, setSearchTerm]);
 
-  const recentCountryObjects = useMemo(() => {
-    return recentCountries
-      .map(code => countries.find(c => c.code.toUpperCase() === code))
-      .filter((c): c is Country => c !== undefined);
-  }, [recentCountries, countries]);
+  // Sort filtered countries with selected ones at the top
+  const sortedFilteredCountries = useMemo(() => {
+    return [...filteredCountries].sort((a, b) => {
+      const aSelected = selected.has(a.code.toUpperCase());
+      const bSelected = selected.has(b.code.toUpperCase());
+      if (aSelected && !bSelected) return -1;
+      if (!aSelected && bSelected) return 1;
+      return 0;
+    });
+  }, [filteredCountries, selected]);
 
   const dayCount = dateRange ? getDayCount(dateRange) : 0;
 
-  const toggleCountry = (code: string) => {
+  const toggleCountry = useCallback((code: string) => {
     const upperCode = code.toUpperCase();
     setSelected(prev => {
       const next = new Set(prev);
@@ -100,13 +105,12 @@ export function BulkUpdateModal({
       }
       return next;
     });
-  };
+  }, []);
 
   const isAtLimit = selected.size >= MAX_COUNTRIES_PER_DAY;
 
   const handleSave = () => {
     const codes = Array.from(selected);
-    addRecentCountries(codes);
     onSave(codes);
   };
 
@@ -159,49 +163,10 @@ export function BulkUpdateModal({
         </div>
       )}
 
-      {/* Recent countries */}
-      {recentCountryObjects.length > 0 && !searchTerm && (
-        <div className="space-y-2">
-          <p className="text-xs font-medium text-muted-foreground uppercase tracking-wide">
-            Recent
-          </p>
-          <div className="flex flex-wrap gap-1.5">
-            {recentCountryObjects.map(country => {
-              const isSelected = selected.has(country.code.toUpperCase());
-              const isDisabled = isAtLimit && !isSelected;
-              return (
-                <button
-                  key={country.code}
-                  type="button"
-                  onClick={() => toggleCountry(country.code)}
-                  disabled={isDisabled}
-                  className={cn(
-                    'inline-flex items-center gap-1.5 rounded-full px-2.5 py-1 text-xs font-medium transition-colors',
-                    'border',
-                    isSelected
-                      ? 'bg-primary text-primary-foreground border-primary'
-                      : isDisabled
-                        ? 'bg-muted border-transparent opacity-50 cursor-not-allowed'
-                        : 'bg-muted hover:bg-accent border-transparent'
-                  )}
-                >
-                  <Flag
-                    countryCode={country.code}
-                    size="xs"
-                    fallbackColor={country.color}
-                  />
-                  {country.code}
-                </button>
-              );
-            })}
-          </div>
-        </div>
-      )}
-
       {/* Country list */}
       <ScrollArea className="flex-1 -mx-1 px-1">
         <div className="space-y-0.5">
-          {filteredCountries.map(country => {
+          {sortedFilteredCountries.map(country => {
             const isSelected = selected.has(country.code.toUpperCase());
             const isDisabled = isAtLimit && !isSelected;
             return (
@@ -233,7 +198,7 @@ export function BulkUpdateModal({
               </label>
             );
           })}
-          {filteredCountries.length === 0 && (
+          {sortedFilteredCountries.length === 0 && (
             <div className="py-8 text-center text-muted-foreground">
               No countries found
             </div>
@@ -250,7 +215,7 @@ export function BulkUpdateModal({
           <Button variant="outline" size="sm" onClick={handleClear} disabled={selected.size === 0}>
             Clear
           </Button>
-          <Button size="sm" onClick={handleSave} disabled={isLoading || selected.size === 0}>
+          <Button size="sm" onClick={handleSave} disabled={isLoading}>
             {isLoading ? 'Updating...' : `Update ${dayCount} day${dayCount !== 1 ? 's' : ''}`}
           </Button>
         </div>
@@ -264,7 +229,7 @@ export function BulkUpdateModal({
         <SheetContent side="bottom" className="h-[85vh] flex flex-col">
           <SheetHeader className="text-left">
             <SheetTitle>{title}</SheetTitle>
-            <SheetDescription>Select countries to add to all dates in range</SheetDescription>
+            <SheetDescription>Select countries for all dates in range</SheetDescription>
           </SheetHeader>
           <div className="flex-1 overflow-hidden mt-4">{content}</div>
         </SheetContent>
@@ -277,7 +242,7 @@ export function BulkUpdateModal({
       <DialogContent className="max-w-md h-[600px] flex flex-col">
         <DialogHeader>
           <DialogTitle>{title}</DialogTitle>
-          <DialogDescription>Select countries to add to all dates in range</DialogDescription>
+          <DialogDescription>Select countries for all dates in range</DialogDescription>
         </DialogHeader>
         <div className="flex-1 overflow-hidden">{content}</div>
       </DialogContent>

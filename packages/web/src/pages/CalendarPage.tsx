@@ -53,6 +53,24 @@ export default function CalendarPage() {
     [selectedDateRecords]
   );
 
+  // Get union of all country codes from all dates in the selected range
+  const rangeCountryCodes = useMemo(() => {
+    if (!selectedRange || !recordsData?.records) return [];
+
+    const startDate = selectedRange.start;
+    const endDate = selectedRange.end;
+    const countrySet = new Set<string>();
+
+    for (const record of recordsData.records) {
+      const recordDate = new Date(record.date);
+      if (recordDate >= startDate && recordDate <= endDate) {
+        countrySet.add(record.countryCode.toUpperCase());
+      }
+    }
+
+    return Array.from(countrySet);
+  }, [selectedRange, recordsData?.records]);
+
   const handlePickerSave = useCallback(
     async (countryCodes: string[]) => {
       if (!pickerTargetDate) return;
@@ -205,6 +223,7 @@ export default function CalendarPage() {
         isOpen={!!selectedRange}
         onClose={clearRange}
         dateRange={selectedRange}
+        existingCountryCodes={rangeCountryCodes}
         onSave={handleBulkUpdate}
         isLoading={bulkUpdate.isPending}
       />

@@ -21,8 +21,7 @@ import { Input } from '@/components/ui/input';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { Checkbox } from '@/components/ui/checkbox';
 import { Flag } from '@/components/ui/Flag';
-import { useCountries, useCountrySearch, type Country } from '@/hooks/useCountries';
-import { useRecentCountries } from '@/hooks/useRecentCountries';
+import { useCountries, useCountrySearch } from '@/hooks/useCountries';
 import { cn } from '@/lib/utils';
 import { formatDisplayDate } from './utils';
 
@@ -61,7 +60,6 @@ export function CountryPicker({
   const { data: countriesData } = useCountries();
   const countries = countriesData?.countries || [];
   const { searchTerm, setSearchTerm, filteredCountries } = useCountrySearch(countries);
-  const { recentCountries, addRecentCountries } = useRecentCountries();
   const [selected, setSelected] = useState<Set<string>>(new Set());
   const isMobile = useMediaQuery('(max-width: 640px)');
 
@@ -72,12 +70,6 @@ export function CountryPicker({
       setSearchTerm('');
     }
   }, [isOpen, selectedCountryCodes, setSearchTerm]);
-
-  const recentCountryObjects = useMemo(() => {
-    return recentCountries
-      .map(code => countries.find(c => c.code.toUpperCase() === code))
-      .filter((c): c is Country => c !== undefined);
-  }, [recentCountries, countries]);
 
   // Sort filtered countries with selected ones at the top
   const sortedFilteredCountries = useMemo(() => {
@@ -107,7 +99,6 @@ export function CountryPicker({
 
   const handleSave = () => {
     const codes = Array.from(selected);
-    addRecentCountries(codes);
     onSave(codes);
   };
 
@@ -139,45 +130,6 @@ export function CountryPicker({
           </button>
         )}
       </div>
-
-      {/* Recent countries */}
-      {recentCountryObjects.length > 0 && !searchTerm && (
-        <div className="space-y-2">
-          <p className="text-xs font-medium text-muted-foreground uppercase tracking-wide">
-            Recent
-          </p>
-          <div className="flex flex-wrap gap-1.5">
-            {recentCountryObjects.map(country => {
-              const isSelected = selected.has(country.code.toUpperCase());
-              const isDisabled = isAtLimit && !isSelected;
-              return (
-                <button
-                  key={country.code}
-                  type="button"
-                  onClick={() => toggleCountry(country.code)}
-                  disabled={isDisabled}
-                  className={cn(
-                    'inline-flex items-center gap-1.5 rounded-full px-2.5 py-1 text-xs font-medium transition-colors',
-                    'border',
-                    isSelected
-                      ? 'bg-primary text-primary-foreground border-primary'
-                      : isDisabled
-                        ? 'bg-muted border-transparent opacity-50 cursor-not-allowed'
-                        : 'bg-muted hover:bg-accent border-transparent'
-                  )}
-                >
-                  <Flag
-                    countryCode={country.code}
-                    size="xs"
-                    fallbackColor={country.color}
-                  />
-                  {country.code}
-                </button>
-              );
-            })}
-          </div>
-        </div>
-      )}
 
       {/* Limit warning */}
       {isAtLimit && (
