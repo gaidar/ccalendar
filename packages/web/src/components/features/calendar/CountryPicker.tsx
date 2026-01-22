@@ -79,6 +79,17 @@ export function CountryPicker({
       .filter((c): c is Country => c !== undefined);
   }, [recentCountries, countries]);
 
+  // Sort filtered countries with selected ones at the top
+  const sortedFilteredCountries = useMemo(() => {
+    return [...filteredCountries].sort((a, b) => {
+      const aSelected = selected.has(a.code.toUpperCase());
+      const bSelected = selected.has(b.code.toUpperCase());
+      if (aSelected && !bSelected) return -1;
+      if (!aSelected && bSelected) return 1;
+      return 0;
+    });
+  }, [filteredCountries, selected]);
+
   const toggleCountry = (code: string) => {
     const upperCode = code.toUpperCase();
     setSelected(prev => {
@@ -179,7 +190,7 @@ export function CountryPicker({
       {/* Country list */}
       <ScrollArea className="flex-1 -mx-1 px-1">
         <div className="space-y-0.5">
-          {filteredCountries.map(country => {
+          {sortedFilteredCountries.map(country => {
             const isSelected = selected.has(country.code.toUpperCase());
             const isDisabled = isAtLimit && !isSelected;
             return (
@@ -211,7 +222,7 @@ export function CountryPicker({
               </label>
             );
           })}
-          {filteredCountries.length === 0 && (
+          {sortedFilteredCountries.length === 0 && (
             <div className="py-8 text-center text-muted-foreground">
               No countries found
             </div>
