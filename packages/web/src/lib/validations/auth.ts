@@ -7,6 +7,8 @@ export const loginSchema = z.object({
     .email('Please enter a valid email address')
     .max(120, 'Email must not exceed 120 characters'),
   password: z.string().min(1, 'Password is required'),
+  rememberMe: z.boolean().optional().default(false),
+  captchaToken: z.string().optional(),
 });
 
 export type LoginFormData = z.infer<typeof loginSchema>;

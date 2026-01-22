@@ -37,12 +37,18 @@ const REFRESH_TOKEN_COOKIE_OPTIONS = {
 };
 
 /**
- * Get available OAuth providers
+ * Get available OAuth providers and auth config
  * GET /api/auth/providers
  */
 export function getProviders(_req: Request, res: Response): void {
   const providers = oauthService.getAvailableProviders();
-  res.json({ providers });
+  res.json({
+    providers,
+    captcha: {
+      required: config.recaptcha.isRequired,
+      siteKey: config.recaptcha.isRequired ? config.recaptcha.publicKey : null,
+    },
+  });
 }
 
 /**

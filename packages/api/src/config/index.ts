@@ -42,6 +42,9 @@ const envSchema = z.object({
   SENTRY_DSN: z.string().url().optional(),
   SENTRY_ENVIRONMENT: z.string().optional(),
   APP_VERSION: z.string().optional().default('1.0.0'),
+  // reCAPTCHA configuration
+  RECAPTCHA_PUBLIC_KEY: z.string().optional(),
+  RECAPTCHA_PRIVATE_KEY: z.string().optional(),
 });
 
 function validateEnv(): z.infer<typeof envSchema> {
@@ -126,6 +129,17 @@ export const config = {
     release: env.APP_VERSION,
     get isConfigured() {
       return !!env.SENTRY_DSN;
+    },
+  },
+  recaptcha: {
+    publicKey: env.RECAPTCHA_PUBLIC_KEY,
+    privateKey: env.RECAPTCHA_PRIVATE_KEY,
+    get isConfigured() {
+      return !!(env.RECAPTCHA_PUBLIC_KEY && env.RECAPTCHA_PRIVATE_KEY);
+    },
+    // CAPTCHA is required in production when configured
+    get isRequired() {
+      return env.NODE_ENV === 'production' && this.isConfigured;
     },
   },
 } as const;

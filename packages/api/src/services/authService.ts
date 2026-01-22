@@ -26,6 +26,7 @@ export interface AuthTokens {
 export interface LoginResult {
   user: AuthUser;
   tokens: AuthTokens;
+  rememberMe: boolean;
 }
 
 export const authService = {
@@ -174,11 +175,16 @@ export const authService = {
 
   /**
    * Login with email and password
+   * @param input - Login credentials
+   * @param ipAddress - Client IP address
+   * @param userAgent - Client user agent
+   * @param rememberMe - If true, extend session to 30 days
    */
   async login(
     input: LoginInput,
     ipAddress: string,
-    userAgent: string | undefined
+    userAgent: string | undefined,
+    rememberMe = false
   ): Promise<LoginResult> {
     // Check for account lockout
     const isLockedOut = await this.isAccountLockedOut(input.email);
@@ -240,7 +246,7 @@ export const authService = {
       email: user.email,
       isAdmin: user.isAdmin,
     });
-    const refreshToken = await tokenService.createRefreshToken(user.id);
+    const refreshToken = await tokenService.createRefreshToken(user.id, rememberMe);
 
     return {
       user: {
@@ -253,6 +259,7 @@ export const authService = {
         accessToken,
         refreshToken,
       },
+      rememberMe,
     };
   },
 

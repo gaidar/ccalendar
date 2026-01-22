@@ -1,17 +1,28 @@
-import { useState } from 'react';
+import { useState, useEffect, useRef, useCallback } from 'react';
 import { Link, useNavigate, useLocation } from 'react-router-dom';
-import { useForm } from 'react-hook-form';
+import { useForm, Controller } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
+import ReCAPTCHA from 'react-google-recaptcha';
 import { Globe, Loader2, AlertCircle } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
+import { Checkbox } from '@/components/ui/checkbox';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { OAuthButtons } from '@/components/features/OAuthButtons';
 import { useAuthStore } from '@/stores/authStore';
 import { authService } from '@/lib/authService';
+import { api } from '@/lib/api';
 import { loginSchema, type LoginFormData } from '@/lib/validations/auth';
 import { toast } from 'sonner';
+
+interface AuthConfigResponse {
+  providers: string[];
+  captcha: {
+    required: boolean;
+    siteKey: string | null;
+  };
+}
 
 export default function LoginPage() {
   const navigate = useNavigate();
@@ -19,28 +30,62 @@ export default function LoginPage() {
   const { login } = useAuthStore();
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [captchaConfig, setCaptchaConfig] = useState<{ required: boolean; siteKey: string | null }>({
+    required: false,
+    siteKey: null,
+  });
+  const recaptchaRef = useRef<ReCAPTCHA>(null);
 
   const from = (location.state as { from?: string })?.from || '/calendar';
+
+  // Fetch auth config (including CAPTCHA settings)
+  useEffect(() => {
+    async function fetchAuthConfig() {
+      try {
+        const data = await api.get<AuthConfigResponse>('/auth/providers');
+        setCaptchaConfig(data.captcha);
+      } catch (error) {
+        console.error('Failed to fetch auth config:', error);
+      }
+    }
+    fetchAuthConfig();
+  }, []);
 
   const {
     register,
     handleSubmit,
     formState: { errors },
     setValue,
+    control,
   } = useForm<LoginFormData>({
     resolver: zodResolver(loginSchema),
     defaultValues: {
       email: '',
       password: '',
+      rememberMe: false,
     },
   });
 
-  const onSubmit = async (data: LoginFormData) => {
+  const onSubmit = useCallback(async (data: LoginFormData) => {
     setIsSubmitting(true);
     setError(null);
 
     try {
-      const response = await authService.login(data);
+      // Get CAPTCHA token if required
+      let captchaToken: string | undefined;
+      if (captchaConfig.required && recaptchaRef.current) {
+        captchaToken = recaptchaRef.current.getValue() || undefined;
+        if (!captchaToken) {
+          setError('Please complete the CAPTCHA verification.');
+          setIsSubmitting(false);
+          return;
+        }
+      }
+
+      const response = await authService.login({
+        ...data,
+        captchaToken,
+      });
       login(response.accessToken, response.user);
 
       if (!response.user.isConfirmed) {
@@ -53,8 +98,13 @@ export default function LoginPage() {
     } catch (err) {
       const message = err instanceof Error ? err.message : 'Login failed';
 
+      // Reset CAPTCHA on error
+      recaptchaRef.current?.reset();
+
       if (message.toLowerCase().includes('locked')) {
         setError('Too many login attempts. Please try again in 15 minutes.');
+      } else if (message.toLowerCase().includes('captcha')) {
+        setError('CAPTCHA verification failed. Please try again.');
       } else if (
         message.toLowerCase().includes('invalid') ||
         message.toLowerCase().includes('credentials')
@@ -67,7 +117,7 @@ export default function LoginPage() {
     } finally {
       setIsSubmitting(false);
     }
-  };
+  }, [captchaConfig.required, login, navigate, from, setValue]);
 
   return (
     <div className="flex min-h-screen items-center justify-center bg-gradient-to-br from-blue-50 via-white to-indigo-50 p-4">
@@ -140,6 +190,37 @@ export default function LoginPage() {
                 </p>
               )}
             </div>
+
+            <div className="flex items-center space-x-2">
+              <Controller
+                name="rememberMe"
+                control={control}
+                render={({ field }) => (
+                  <Checkbox
+                    id="rememberMe"
+                    checked={field.value}
+                    onCheckedChange={field.onChange}
+                    disabled={isSubmitting}
+                  />
+                )}
+              />
+              <Label
+                htmlFor="rememberMe"
+                className="text-sm font-normal text-muted-foreground cursor-pointer"
+              >
+                Keep me logged in for 30 days
+              </Label>
+            </div>
+
+            {captchaConfig.required && captchaConfig.siteKey && (
+              <div className="flex justify-center">
+                <ReCAPTCHA
+                  ref={recaptchaRef}
+                  sitekey={captchaConfig.siteKey}
+                  theme="light"
+                />
+              </div>
+            )}
 
             <Button type="submit" className="w-full" disabled={isSubmitting}>
               {isSubmitting ? (

@@ -4,6 +4,8 @@ import type { User } from '@/stores/authStore';
 export interface LoginRequest {
   email: string;
   password: string;
+  rememberMe?: boolean;
+  captchaToken?: string;
 }
 
 export interface LoginResponse {

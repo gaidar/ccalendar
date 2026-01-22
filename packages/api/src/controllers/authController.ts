@@ -1,5 +1,6 @@
 import { Request, Response, NextFunction } from 'express';
 import { authService } from '../services/authService.js';
+import { captchaService } from '../services/captchaService.js';
 import {
   registerSchema,
   loginSchema,
@@ -11,6 +12,7 @@ import {
 import { config } from '../config/index.js';
 import { emailService } from '../services/email/index.js';
 import { prisma } from '../utils/prisma.js';
+import { HttpError } from '../middleware/errorHandler.js';
 
 // Cookie options for refresh token
 const REFRESH_TOKEN_COOKIE_OPTIONS = {
@@ -19,6 +21,12 @@ const REFRESH_TOKEN_COOKIE_OPTIONS = {
   sameSite: 'strict' as const,
   maxAge: 7 * 24 * 60 * 60 * 1000, // 7 days
   path: '/api/v1/auth',
+};
+
+// Extended cookie options for "remember me" (30 days)
+const EXTENDED_REFRESH_TOKEN_COOKIE_OPTIONS = {
+  ...REFRESH_TOKEN_COOKIE_OPTIONS,
+  maxAge: 30 * 24 * 60 * 60 * 1000, // 30 days
 };
 
 function getClientIp(req: Request): string {
@@ -136,13 +144,28 @@ export async function login(
 ): Promise<void> {
   try {
     const input = loginSchema.parse(req.body);
+
+    // Validate CAPTCHA in production
+    if (captchaService.isRequired()) {
+      if (!input.captchaToken) {
+        throw new HttpError(400, 'CAPTCHA_REQUIRED', 'CAPTCHA verification is required');
+      }
+      const isCaptchaValid = await captchaService.validateToken(input.captchaToken);
+      if (!isCaptchaValid) {
+        throw new HttpError(400, 'CAPTCHA_INVALID', 'CAPTCHA verification failed');
+      }
+    }
+
     const ipAddress = getClientIp(req);
     const userAgent = req.headers['user-agent'];
 
-    const result = await authService.login(input, ipAddress, userAgent);
+    const result = await authService.login(input, ipAddress, userAgent, input.rememberMe);
 
-    // Set refresh token in httpOnly cookie
-    res.cookie('refreshToken', result.tokens.refreshToken, REFRESH_TOKEN_COOKIE_OPTIONS);
+    // Set refresh token in httpOnly cookie with appropriate expiration
+    const cookieOptions = result.rememberMe
+      ? EXTENDED_REFRESH_TOKEN_COOKIE_OPTIONS
+      : REFRESH_TOKEN_COOKIE_OPTIONS;
+    res.cookie('refreshToken', result.tokens.refreshToken, cookieOptions);
 
     res.json({
       user: result.user,

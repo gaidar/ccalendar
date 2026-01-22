@@ -67,13 +67,16 @@ export const tokenService = {
 
   /**
    * Create a refresh token and store in database
+   * @param userId - The user ID
+   * @param extendedExpiry - If true, use 30-day expiry for "remember me" feature
    */
-  async createRefreshToken(userId: string): Promise<string> {
+  async createRefreshToken(userId: string, extendedExpiry = false): Promise<string> {
     const rawToken = this.generateSecureToken();
     const hashedToken = this.hashToken(rawToken);
-    const expiresAt = new Date(
-      Date.now() + parseExpiry(config.jwt.refreshExpiry) * 1000
-    );
+    const expirySeconds = extendedExpiry
+      ? 30 * 24 * 60 * 60 // 30 days
+      : parseExpiry(config.jwt.refreshExpiry);
+    const expiresAt = new Date(Date.now() + expirySeconds * 1000);
 
     await prisma.refreshToken.create({
       data: {
@@ -118,8 +121,11 @@ export const tokenService = {
 
   /**
    * Rotate a refresh token (revoke old, create new)
+   * @param tokenId - The old token ID to revoke
+   * @param userId - The user ID
+   * @param extendedExpiry - If true, use 30-day expiry for "remember me" feature
    */
-  async rotateRefreshToken(tokenId: string, userId: string): Promise<string> {
+  async rotateRefreshToken(tokenId: string, userId: string, extendedExpiry = false): Promise<string> {
     // Revoke old token
     await prisma.refreshToken.update({
       where: { id: tokenId },
@@ -127,7 +133,7 @@ export const tokenService = {
     });
 
     // Create new token
-    return this.createRefreshToken(userId);
+    return this.createRefreshToken(userId, extendedExpiry);
   },
 
   /**
