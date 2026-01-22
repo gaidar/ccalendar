@@ -76,6 +76,7 @@ Do not jump to changing files until the task is absolutely clear. If there is an
 
 ### Git
 Please ask to commit changes, never push changes. The user will push changes.
+Do not add Co-Authored-By lines to commit messages.
 
 
 ## Software Engineering Principles
