@@ -26,6 +26,7 @@ model User {
   passwordResetTokens     PasswordResetToken[]
   loginAttempts           LoginAttempt[]
 
+  @@index([createdAt])
   @@map("users")
 }
 
@@ -114,6 +115,7 @@ model OAuth {
   user User @relation(fields: [userId], references: [id], onDelete: Cascade)
 
   @@unique([provider, providerId])
+  @@index([userId])
   @@map("oauth_accounts")
 }
 
@@ -134,6 +136,7 @@ model SupportTicket {
   user User? @relation(fields: [userId], references: [id], onDelete: SetNull)
 
   @@index([status])
+  @@index([userId, createdAt])
   @@map("support_tickets")
 }
 

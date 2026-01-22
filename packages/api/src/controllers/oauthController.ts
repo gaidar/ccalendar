@@ -31,10 +31,35 @@ function isLoginResult(value: unknown): value is LoginResult {
 const REFRESH_TOKEN_COOKIE_OPTIONS = {
   httpOnly: true,
   secure: config.env === 'production',
-  sameSite: 'lax' as const,
+  sameSite: 'strict' as const,
   maxAge: 7 * 24 * 60 * 60 * 1000, // 7 days
   path: '/',
 };
+
+/**
+ * Map OAuth provider errors to generic user-friendly messages
+ * Prevents leaking internal error details to the frontend
+ */
+const OAUTH_ERROR_MESSAGES: Record<string, string> = {
+  access_denied: 'You cancelled the sign-in process',
+  invalid_request: 'Sign-in request was invalid. Please try again.',
+  server_error: 'The authentication service is unavailable. Please try again later.',
+  temporarily_unavailable: 'The authentication service is temporarily unavailable. Please try again later.',
+};
+
+function sanitizeOAuthError(error: Error): string {
+  const errorMessage = error.message?.toLowerCase() || '';
+
+  // Check for known error patterns
+  for (const [key, message] of Object.entries(OAUTH_ERROR_MESSAGES)) {
+    if (errorMessage.includes(key)) {
+      return message;
+    }
+  }
+
+  // Default generic message for unknown errors
+  return 'Authentication failed. Please try again.';
+}
 
 /**
  * Get available OAuth providers and auth config
@@ -81,6 +106,7 @@ export function handleOAuthSuccess(
 
 /**
  * Handle OAuth error
+ * Sanitizes error messages to prevent information leakage
  */
 export function handleOAuthError(
   err: Error,
@@ -88,9 +114,12 @@ export function handleOAuthError(
   res: Response,
   _next: NextFunction
 ): void {
+  // Log the actual error for debugging (not exposed to user)
   logger.error('OAuth error', { error: err.message });
 
-  const errorMessage = encodeURIComponent(err.message || 'Authentication failed');
+  // Use sanitized error message for frontend
+  const sanitizedMessage = sanitizeOAuthError(err);
+  const errorMessage = encodeURIComponent(sanitizedMessage);
   res.redirect(`${config.frontend.url}/login?error=${errorMessage}`);
 }
 
