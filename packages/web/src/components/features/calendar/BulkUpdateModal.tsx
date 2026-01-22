@@ -1,5 +1,7 @@
 import { useState, useEffect, useMemo } from 'react';
-import { Search, X, Check, CalendarRange } from 'lucide-react';
+import { Search, X, Check, CalendarRange, AlertCircle } from 'lucide-react';
+
+const MAX_COUNTRIES_PER_DAY = 3;
 import {
   Dialog,
   DialogContent,
@@ -93,12 +95,14 @@ export function BulkUpdateModal({
       const next = new Set(prev);
       if (next.has(upperCode)) {
         next.delete(upperCode);
-      } else {
+      } else if (next.size < MAX_COUNTRIES_PER_DAY) {
         next.add(upperCode);
       }
       return next;
     });
   };
+
+  const isAtLimit = selected.size >= MAX_COUNTRIES_PER_DAY;
 
   const handleSave = () => {
     const codes = Array.from(selected);
@@ -147,6 +151,14 @@ export function BulkUpdateModal({
         )}
       </div>
 
+      {/* Limit warning */}
+      {isAtLimit && (
+        <div className="flex items-center gap-2 rounded-lg bg-amber-500/10 px-3 py-2 text-sm text-amber-600 dark:text-amber-400">
+          <AlertCircle className="h-4 w-4 flex-shrink-0" />
+          <span>Maximum {MAX_COUNTRIES_PER_DAY} countries per day</span>
+        </div>
+      )}
+
       {/* Recent countries */}
       {recentCountryObjects.length > 0 && !searchTerm && (
         <div className="space-y-2">
@@ -154,27 +166,34 @@ export function BulkUpdateModal({
             Recent
           </p>
           <div className="flex flex-wrap gap-1.5">
-            {recentCountryObjects.map(country => (
-              <button
-                key={country.code}
-                type="button"
-                onClick={() => toggleCountry(country.code)}
-                className={cn(
-                  'inline-flex items-center gap-1.5 rounded-full px-2.5 py-1 text-xs font-medium transition-colors',
-                  'border',
-                  selected.has(country.code.toUpperCase())
-                    ? 'bg-primary text-primary-foreground border-primary'
-                    : 'bg-muted hover:bg-accent border-transparent'
-                )}
-              >
-                <Flag
-                  countryCode={country.code}
-                  size="xs"
-                  fallbackColor={country.color}
-                />
-                {country.code}
-              </button>
-            ))}
+            {recentCountryObjects.map(country => {
+              const isSelected = selected.has(country.code.toUpperCase());
+              const isDisabled = isAtLimit && !isSelected;
+              return (
+                <button
+                  key={country.code}
+                  type="button"
+                  onClick={() => toggleCountry(country.code)}
+                  disabled={isDisabled}
+                  className={cn(
+                    'inline-flex items-center gap-1.5 rounded-full px-2.5 py-1 text-xs font-medium transition-colors',
+                    'border',
+                    isSelected
+                      ? 'bg-primary text-primary-foreground border-primary'
+                      : isDisabled
+                        ? 'bg-muted border-transparent opacity-50 cursor-not-allowed'
+                        : 'bg-muted hover:bg-accent border-transparent'
+                  )}
+                >
+                  <Flag
+                    countryCode={country.code}
+                    size="xs"
+                    fallbackColor={country.color}
+                  />
+                  {country.code}
+                </button>
+              );
+            })}
           </div>
         </div>
       )}
@@ -184,18 +203,20 @@ export function BulkUpdateModal({
         <div className="space-y-0.5">
           {filteredCountries.map(country => {
             const isSelected = selected.has(country.code.toUpperCase());
+            const isDisabled = isAtLimit && !isSelected;
             return (
               <label
                 key={country.code}
                 className={cn(
-                  'flex cursor-pointer items-center gap-3 rounded-lg px-2 py-2.5 transition-colors',
-                  'hover:bg-accent',
+                  'flex items-center gap-3 rounded-lg px-2 py-2.5 transition-colors',
+                  isDisabled ? 'cursor-not-allowed opacity-50' : 'cursor-pointer hover:bg-accent',
                   isSelected && 'bg-accent'
                 )}
               >
                 <Checkbox
                   checked={isSelected}
                   onCheckedChange={() => toggleCountry(country.code)}
+                  disabled={isDisabled}
                 />
                 <Flag
                   countryCode={country.code}

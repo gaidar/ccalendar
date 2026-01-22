@@ -1,10 +1,11 @@
 import { useCallback, useMemo } from 'react';
 import { Loader2 } from 'lucide-react';
 import { toast } from 'sonner';
-import { Calendar, CountryPicker, BulkUpdateModal, formatDateKey } from '@/components/features/calendar';
+import { Calendar, CountryPicker, BulkUpdateModal, DateSelectionPanel, formatDateKey } from '@/components/features/calendar';
 import { CalendarHelp } from '@/components/features/calendar/CalendarHelp';
 import { useCalendarStore } from '@/stores/calendarStore';
 import { useAuthStore } from '@/stores/authStore';
+import { useCountries } from '@/hooks/useCountries';
 import {
   useTravelRecords,
   useCreateTravelRecord,
@@ -19,11 +20,15 @@ export default function CalendarPage() {
     isPickerOpen,
     pickerTargetDate,
     selectedRange,
+    rangeStart,
     closePicker,
     clearRange,
+    openPicker,
   } = useCalendarStore();
 
   const { data: recordsData, isLoading: recordsLoading } = useTravelRecords(viewMonth);
+  const { data: countriesData } = useCountries();
+  const countries = countriesData?.countries || [];
   const createRecord = useCreateTravelRecord();
   const deleteRecord = useDeleteTravelRecord();
   const bulkUpdate = useBulkUpdateTravelRecords();
@@ -34,6 +39,13 @@ export default function CalendarPage() {
     const dateKey = formatDateKey(pickerTargetDate);
     return recordsData.records.filter(r => r.date === dateKey);
   }, [pickerTargetDate, recordsData?.records]);
+
+  // Get records for rangeStart date (for inline panel)
+  const rangeStartRecords = useMemo(() => {
+    if (!rangeStart || !recordsData?.records) return [];
+    const dateKey = formatDateKey(rangeStart);
+    return recordsData.records.filter(r => r.date === dateKey);
+  }, [rangeStart, recordsData?.records]);
 
   const selectedCountryCodes = useMemo(
     () => selectedDateRecords.map(r => r.countryCode),
@@ -98,6 +110,27 @@ export default function CalendarPage() {
     [selectedRange, bulkUpdate, clearRange]
   );
 
+  // Handle removing a country from the inline panel
+  const handleRemoveCountry = useCallback(
+    async (recordId: string) => {
+      try {
+        await deleteRecord.mutateAsync(recordId);
+        toast.success('Country removed');
+      } catch (error) {
+        toast.error('Failed to remove country');
+        console.error(error);
+      }
+    },
+    [deleteRecord]
+  );
+
+  // Handle opening picker from inline panel
+  const handleOpenPickerFromPanel = useCallback(() => {
+    if (rangeStart) {
+      openPicker(rangeStart);
+    }
+  }, [rangeStart, openPicker]);
+
   const isSaving =
     createRecord.isPending || deleteRecord.isPending || bulkUpdate.isPending;
 
@@ -118,6 +151,21 @@ export default function CalendarPage() {
 
       {/* Calendar */}
       {!recordsLoading && <Calendar />}
+
+      {/* Date selection panel - shows when a date is clicked */}
+      {rangeStart && (
+        <div className="mt-4">
+          <DateSelectionPanel
+            date={rangeStart}
+            records={rangeStartRecords}
+            countries={countries}
+            onRemoveCountry={handleRemoveCountry}
+            onAddCountries={handleOpenPickerFromPanel}
+            onClose={clearRange}
+            isLoading={deleteRecord.isPending}
+          />
+        </div>
+      )}
 
       {/* Legend */}
       <div className="mt-6 flex flex-wrap items-center gap-4 text-sm text-muted-foreground">
